@@ -1,4 +1,4 @@
-package n_squared;
+package nlogn;
 
 public class Runner {
     public static void main(String[] args) {
