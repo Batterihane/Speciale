@@ -6,7 +6,6 @@
 
 /Speciale.iml
 # Package Files #
-*.jar
 *.war
 *.ear
 /.idea
