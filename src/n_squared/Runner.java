@@ -8,8 +8,8 @@ public class Runner {
     public static void main(String[] args) {
         ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
 
-        Phylogeny tree1 = foresterNewickParser.parseNewickFile("trees\\Tree1.new");
-        Phylogeny tree2 = foresterNewickParser.parseNewickFile("trees\\Tree2.new");
+        Phylogeny tree1 = foresterNewickParser.parseNewickFile("trees\\Tree2.new");
+        Phylogeny tree2 = foresterNewickParser.parseNewickFile("trees\\Tree3.new");
         //foresterNewickParser.displayPhylogeny(tree);
         //System.out.println(tree.getRoot().getNumberOfDescendants());
 
