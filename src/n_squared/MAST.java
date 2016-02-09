@@ -31,9 +31,9 @@ public class MAST {
                         subtreeMASTs[i][j] = currentTree1Node.getName().equals(currentTree2Node.getName())? 1 : 0;
                     }
                     else{
-                        int child1TraversalNumber = traversalNumbers[currentTree2Node.getChildNode1().getId()];
-                        int child2TraversalNumber = traversalNumbers[currentTree2Node.getChildNode2().getId()];
-                        subtreeMASTs[i][j] = Math.max(subtreeMASTs[i][child1TraversalNumber], subtreeMASTs[i][child2TraversalNumber]);
+                        int tree2Child1TraversalNumber = traversalNumbers[currentTree2Node.getChildNode1().getId()];
+                        int tree2Child2TraversalNumber = traversalNumbers[currentTree2Node.getChildNode2().getId()];
+                        subtreeMASTs[i][j] = Math.max(subtreeMASTs[i][tree2Child1TraversalNumber], subtreeMASTs[i][tree2Child2TraversalNumber]);
                     }
                 }
                 else{
