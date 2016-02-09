@@ -1,4 +1,4 @@
-package project1;
+package Utilities;
 
 import org.forester.archaeopteryx.Archaeopteryx;
 import org.forester.archaeopteryx.MainFrame;
@@ -22,8 +22,9 @@ public class ForesterNewickParser {
     public static void main(String[] args) throws IOException {
         ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
 
-        Phylogeny tree = foresterNewickParser.parseNewickFile("C:\\Users\\Nikolaj\\BioTreeAndSeq\\BioTrees\\trees\\quickTree\\testnewick.new");
+        Phylogeny tree = foresterNewickParser.parseNewickFile("trees\\test.new");
         foresterNewickParser.displayPhylogeny(tree);
+        System.out.println(tree.getRoot().getNumberOfDescendants());
     }
 
     public void displayPhylogeny(Phylogeny tree)
