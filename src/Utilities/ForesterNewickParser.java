@@ -22,7 +22,7 @@ public class ForesterNewickParser {
     public static void main(String[] args) throws IOException {
         ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
 
-        Phylogeny tree = foresterNewickParser.parseNewickFile("trees\\Tree3.new");
+        Phylogeny tree = foresterNewickParser.parseNewickFile("trees\\Tree4.new");
         foresterNewickParser.displayPhylogeny(tree);
         System.out.println(tree.getRoot().getNumberOfDescendants());
         System.out.println(tree.getNode(3).getName());
