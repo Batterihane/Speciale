@@ -1,4 +1,4 @@
-package project1;
+package Utilities;
 
 import org.forester.archaeopteryx.Archaeopteryx;
 import org.forester.archaeopteryx.MainFrame;
