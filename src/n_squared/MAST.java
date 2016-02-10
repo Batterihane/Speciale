@@ -62,6 +62,15 @@ public class MAST {
         return subtreeMASTs[tree1.getNodeCount()-1][tree2.getNodeCount()-1];
     }
 
+    public void printMatrix(int[][] matrix){
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[0].length; j++) {
+                System.out.print(matrix[i][j] + " ");
+            }
+            System.out.println();
+        }
+    }
+
     public int max(int a, int b, int c, int d, int e, int f){
         return Math.max(a, Math.max(b, Math.max(c, Math.max(d, Math.max(e, f)))));
     }
