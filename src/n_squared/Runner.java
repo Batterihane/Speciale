@@ -8,8 +8,8 @@ public class Runner {
     public static void main(String[] args) {
         ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
 
-        Phylogeny tree1 = foresterNewickParser.parseNewickFile("trees\\Tree3.new");
-        Phylogeny tree2 = foresterNewickParser.parseNewickFile("trees\\Tree4.new");
+        Phylogeny tree1 = foresterNewickParser.parseNewickFile("trees\\304_A1_Propeptide.new");
+        Phylogeny tree2 = foresterNewickParser.parseNewickFile("trees\\304_A1_Propeptide.new");
         //foresterNewickParser.displayPhylogeny(tree);
         //System.out.println(tree.getRoot().getNumberOfDescendants());
 
@@ -18,6 +18,8 @@ public class Runner {
         PhylogenyNodeIterator tree2Iterator = tree2.iteratorPostorder();
 
         MAST mast = new MAST();
-        System.out.println(mast.getMAST(tree1, tree2));
+        int size = mast.getMAST(tree1, tree2);
+        System.out.println(size);
+
     }
 }
