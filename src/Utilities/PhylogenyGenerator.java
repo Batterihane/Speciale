@@ -1,8 +1,10 @@
 package Utilities;
 
+import n_squared.MAST;
 import org.forester.io.writers.PhylogenyWriter;
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
+import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,11 +16,13 @@ import java.util.Random;
 public class PhylogenyGenerator {
 
     public static void main(String[] args) {
-        Phylogeny tree1 = generateTree(10);
-        ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
-        foresterNewickParser.displayPhylogeny(tree1);
-        Phylogeny tree2 = generateTree(10);
-        foresterNewickParser.displayPhylogeny(tree2);
+        Phylogeny tree1 = generateTree(1000);
+
+        Phylogeny tree2 = generateTree(1000);
+
+        MAST mast = new MAST();
+        //int size = mast.getMAST(tree1, tree2);
+        //System.out.println(size);
     }
 
     public static Phylogeny generateTree(int size){

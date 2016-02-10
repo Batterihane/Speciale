@@ -17,6 +17,9 @@ public class Runner {
 
         MAST mast = new MAST();
 //        System.out.println(mast.getMASTsize(tree1, tree2));
-        foresterNewickParser.displayPhylogeny(mast.getMAST(tree1, tree2));
+        //foresterNewickParser.displayPhylogeny(mast.getMAST(tree1, tree2));
+
+
+
     }
 }

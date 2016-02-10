@@ -26,12 +26,10 @@ public class PhylogenyParser {
         ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
         PhylogenyParser phylogenyParser = new PhylogenyParser();
 
-        Phylogeny phylogeny1 = PhylogenyGenerator.generateTree(5);
-        foresterNewickParser.displayPhylogeny(phylogeny1);
+        Phylogeny phylogeny1 = PhylogenyGenerator.generateTree(2000);
+        phylogenyParser.toNewick(phylogeny1, "bigOne", true);
 
-        phylogenyParser.toNewick(phylogeny1, "something", true);
-
-        Phylogeny phylogeny2 = foresterNewickParser.parseNewickFile("trees\\random\\something.new");
-        foresterNewickParser.displayPhylogeny(phylogeny2);
+        //Phylogeny phylogeny2 = foresterNewickParser.parseNewickFile("trees\\random\\something.new");
+        //foresterNewickParser.displayPhylogeny(phylogeny2);
     }
 }
