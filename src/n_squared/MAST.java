@@ -104,6 +104,7 @@ public class MAST {
         Phylogeny tree = new Phylogeny();
         tree.setRoot(subtreeMASTs[tree1.getNodeCount()-1][tree2.getNodeCount()-1].getMast());
 
+        //Fixes the tree references
         PhylogenyNodeIterator phylogenyNodeIterator = tree.iteratorPreorder();
         while (phylogenyNodeIterator.hasNext()) {
             PhylogenyNode next = phylogenyNodeIterator.next();
