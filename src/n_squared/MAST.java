@@ -151,6 +151,7 @@ public class MAST {
                 }
             }
         }
+
         return subtreeMASTs[tree1.getNodeCount()-1][tree2.getNodeCount()-1];
     }
 
