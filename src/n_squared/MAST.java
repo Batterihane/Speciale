@@ -4,6 +4,8 @@ import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
 import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
 
+import java.util.List;
+
 /**
  * Created by Thomas on 09-02-2016.
  */
@@ -101,6 +103,13 @@ public class MAST {
         }
         Phylogeny tree = new Phylogeny();
         tree.setRoot(subtreeMASTs[tree1.getNodeCount()-1][tree2.getNodeCount()-1].getMast());
+
+        PhylogenyNodeIterator phylogenyNodeIterator = tree.iteratorPreorder();
+        while (phylogenyNodeIterator.hasNext()) {
+            PhylogenyNode next = phylogenyNodeIterator.next();
+            List<PhylogenyNode> allDescendants = next.getAllDescendants();
+            if (allDescendants != null) allDescendants.forEach(child -> child.setParent(next));
+        }
         return tree;
     }
 
