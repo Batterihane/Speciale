@@ -13,7 +13,7 @@ import java.util.Stack;
  */
 public class MAST {
 
-    private List<PhylogenyNode> computeFirstDecomposition(Phylogeny tree){
+    public List<PhylogenyNode> computeFirstDecomposition(Phylogeny tree){
         List<PhylogenyNode> result = new ArrayList<>();
 
         PhylogenyNode currentNode = tree.getRoot();
@@ -29,7 +29,7 @@ public class MAST {
         return result;
     }
 
-    private List<List<PhylogenyNode>> computeSecondDecomposition(Phylogeny tree){
+    public List<List<PhylogenyNode>> computeSecondDecomposition(Phylogeny tree){
         List<List<PhylogenyNode>> result = new ArrayList<>();
         Stack<PhylogenyNode> remainingStartNodes = new Stack<>();
         PhylogenyNode root = tree.getRoot();
