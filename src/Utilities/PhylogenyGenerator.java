@@ -46,6 +46,7 @@ public class PhylogenyGenerator {
             newNode.setChild1(node1);
             newNode.setChild2(node2);
             nodes.add(newNode);
+            newNode.setName(newNode.getId() + "");
         }
 
         Phylogeny tree = new Phylogeny();
