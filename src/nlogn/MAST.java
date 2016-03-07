@@ -2,6 +2,7 @@ package nlogn;
 
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +13,12 @@ import java.util.Stack;
  * Created by Thomas on 18-02-2016.
  */
 public class MAST {
+
+
+
+    public List<Phylogeny> induceSubtrees(List<PhylogenyNode> centroidPath){
+        throw new NotImplementedException();
+    }
 
     public List<PhylogenyNode> computeFirstDecomposition(Phylogeny tree){
         List<PhylogenyNode> result = new ArrayList<>();
