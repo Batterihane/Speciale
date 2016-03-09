@@ -18,11 +18,11 @@ public class ConstantTimeLCA {
 
     public static void main(String[] args) {
         ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
-        Phylogeny tree = PhylogenyGenerator.generateTree(5);
+        Phylogeny tree = PhylogenyGenerator.generateTree(30);
         foresterNewickParser.displayPhylogeny(tree);
-        ConstantTimeLCA lca = new ConstantTimeLCA(tree);
-        lca.getLCA(tree.getNode("Leaf_0"), tree.getNode("Leaf_4"));
-        tree.getNodeCount();
+        ConstantTimeLCA lcaFinder = new ConstantTimeLCA(tree);
+        PhylogenyNode lca = lcaFinder.getLCA(tree.getNode("50"), tree.getNode("40"));
+        System.out.println(lca.getName());
     }
 
     public ConstantTimeLCA(Phylogeny tree){
@@ -50,10 +50,39 @@ public class ConstantTimeLCA {
         k = k >> cbtLCAHeight-1;
         k = k << cbtLCAHeight-1;
         int lcaMaxHeightSubtreeNodeHeight = BitSet.valueOf(new long[] { k }).nextSetBit(0) + 1; // h(I(z))
-        System.out.println(lcaMaxHeightSubtreeNodeHeight);
+//        System.out.println(lcaMaxHeightSubtreeNodeHeight);
 
         // Find z:
-        throw new NotImplementedException();
+        PhylogenyNode node1ToLCARunEnteringNode = findNodeToLCARunEnteringNode(node1, lcaMaxHeightSubtreeNodeHeight);
+        PhylogenyNode node2ToLCARunEnteringNode = findNodeToLCARunEnteringNode(node2, lcaMaxHeightSubtreeNodeHeight);
+
+        int n1tlcarenDfsNumber = ((LCANodeData) node1ToLCARunEnteringNode.getNodeData().getReference()).getDfsNumber();
+        int n2tlcarenDfsNumber = ((LCANodeData) node2ToLCARunEnteringNode.getNodeData().getReference()).getDfsNumber();
+
+        PhylogenyNode z = n1tlcarenDfsNumber < n2tlcarenDfsNumber ? node1ToLCARunEnteringNode : node2ToLCARunEnteringNode;
+
+        return z;
+    }
+
+    private PhylogenyNode findNodeToLCARunEnteringNode(PhylogenyNode node, int lcaMaxHeightSubtreeNodeHeight){ // x, j=h(I(z))
+        PhylogenyNode nodeToLCARunEnteringNode;
+        LCANodeData nodeData = (LCANodeData) node.getNodeData().getReference();
+        PhylogenyNode nodeMaxHeightSubtreeNode = nodeData.getMaxHeightSubtreeNode(); // I(x)
+        int nmhsnHeight = ((LCANodeData) nodeMaxHeightSubtreeNode.getNodeData().getReference()).getLeastSignificant1BitIndex(); // h(I(x))
+        if(nmhsnHeight == lcaMaxHeightSubtreeNodeHeight) { // if h(I(x)) == h(I(z))
+            nodeToLCARunEnteringNode = node;
+        }
+        else {
+            int nodeBitNumber = nodeData.getBitNumber();
+            int h_i_w = (int)Math.floor(Math.log(((int) Math.pow(2, lcaMaxHeightSubtreeNodeHeight - 1) - 1) & nodeBitNumber)/Math.log(2)) + 1; // h(I(w))
+            int i_x_dfsNumber = ((LCANodeData)nodeMaxHeightSubtreeNode.getNodeData().getReference()).getDfsNumber();
+            int i_w_dfsNumber = i_x_dfsNumber >> h_i_w - 1;
+            i_w_dfsNumber |= 1;
+            i_w_dfsNumber = i_w_dfsNumber << h_i_w - 1;
+            PhylogenyNode w = headsOfRuns[i_w_dfsNumber];
+            nodeToLCARunEnteringNode = w.getParent();
+        }
+        return nodeToLCARunEnteringNode;
     }
 
     private void addLCANodeDataAndDFSNumberingsAndLSBIndex(Phylogeny tree) {
@@ -64,7 +93,7 @@ public class ConstantTimeLCA {
             nodeData.setDfsNumber(i);
             int leastSignificant1BitIndex = BitSet.valueOf(new long[] { i }).nextSetBit(0); //TODO: avoid BitSet
             nodeData.setLeastSignificant1BitIndex(leastSignificant1BitIndex+1);
-            currentNode.getNodeData().addReference(nodeData);
+            currentNode.getNodeData().addReference(nodeData); // TODO: overwrite existing node data if this is not first run
         }
     }
 

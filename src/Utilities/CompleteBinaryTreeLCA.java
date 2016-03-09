@@ -61,10 +61,10 @@ public class CompleteBinaryTreeLCA {
         int mostSignificant1Bit = (int)Math.floor(Math.log(xor)/Math.log(2));
 
         int resultPathNumber = node1PathNumber >> mostSignificant1Bit;
-        resultPathNumber |= 0b1;
+        resultPathNumber |= 1;
         resultPathNumber = resultPathNumber << mostSignificant1Bit;
 
-        System.out.println(resultPathNumber);
+//        System.out.println(resultPathNumber);
         return pathNumberOrderedNodes[resultPathNumber];
     }
 
