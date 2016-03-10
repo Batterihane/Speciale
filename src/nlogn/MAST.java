@@ -4,6 +4,7 @@ import Utilities.ForesterNewickParser;
 import Utilities.PhylogenyGenerator;
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
+import org.forester.phylogeny.data.Reference;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.ArrayList;
@@ -92,6 +93,48 @@ public class MAST {
         }
 
         return result;
+    }
+
+    public void updateSiNumbers(List<PhylogenyNode> decomposition)
+    {
+        for (int i = 0; i < decomposition.size() - 1; i++)
+        {
+            PhylogenyNode currentNode = decomposition.get(i);
+            PhylogenyNode firstChild = currentNode.getChildNode1();
+            PhylogenyNode secondChild = currentNode.getChildNode2();
+
+            PhylogenyNode sNode = decomposition.get(i+1).getName().equals(""+ firstChild.getName()) ? secondChild : firstChild;
+
+            if (sNode.isExternal()) {
+                MiNodeData nodeData = new MiNodeData();
+                nodeData.setMiNumber(i+1);
+                sNode.getNodeData().addReference(nodeData);
+            }
+            else {
+                for (PhylogenyNode sChild : sNode.getAllExternalDescendants()) {
+                    MiNodeData nodeData = new MiNodeData();
+                    nodeData.setMiNumber(i+1);
+                    sChild.getNodeData().addReference(nodeData);
+                }
+            }
+        }
+    }
+
+    private class MiNodeData extends Reference {
+        public int getMiNumber() {
+            return miNumber;
+        }
+
+        public void setMiNumber(int miNumber) {
+            this.miNumber = miNumber;
+        }
+
+        private int miNumber;
+
+        public MiNodeData() {
+            super("");
+        }
+
     }
 
 }
