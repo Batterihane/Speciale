@@ -116,7 +116,7 @@ public class MAST {
             else {
                 for (PhylogenyNode sChild : sNode.getAllExternalDescendants()) {
                     MiNodeData miNodeData = new MiNodeData();
-                    miNodeData.setMiNumber(i + 1);
+                    miNodeData.setMiNumber(i+1);
                     NodeDataReference nodeDataReference = (NodeDataReference) sChild.getNodeData().getReference();
                     nodeDataReference.setMiNodeData(miNodeData);
                 }

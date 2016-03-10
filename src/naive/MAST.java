@@ -11,7 +11,7 @@ import java.util.*;
 public class MAST {
 
     public static void main(String[] args) {
-        System.out.println("asdf");
+        System.out.println("work plz");
 
     }
 
