@@ -20,6 +20,7 @@ public class MAST {
 
         for (int i = 0 ; tree1Iterator.hasNext() ; i++){
             PhylogenyNode currentTree1Node = tree1Iterator.next();
+            currentTree1Node.getNodeData().getProperties();
             traversalNumbers[currentTree1Node.getId()] = i;
 
             PhylogenyNodeIterator tree2Iterator = tree2.iteratorPostorder();

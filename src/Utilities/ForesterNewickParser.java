@@ -18,7 +18,6 @@ import java.util.List;
  */
 public class ForesterNewickParser {
 
-
     public static void main(String[] args) throws IOException {
         ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
 
