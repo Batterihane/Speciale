@@ -22,6 +22,7 @@ public class Runner {
         foresterNewickParser.displayPhylogeny(tree1);
         foresterNewickParser.displayPhylogeny(tree2);
 
+
         MAST mast = new MAST();
         foresterNewickParser.displayPhylogeny(mast.getMAST(tree1, tree2));
 
