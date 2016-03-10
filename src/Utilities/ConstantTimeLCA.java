@@ -1,6 +1,6 @@
 package Utilities;
 
-import Utilities.DataObjects.CompleteBinaryTreeLCANodeData;
+import Utilities.DataObjects.*;
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
 import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
@@ -37,12 +37,15 @@ public class ConstantTimeLCA {
 
     public PhylogenyNode getLCA(PhylogenyNode node1, PhylogenyNode node2){
         // Find h(I(z)):
-        LCANodeData node1Data = (LCANodeData) node1.getNodeData().getReference();
-        LCANodeData node2Data = (LCANodeData) node2.getNodeData().getReference();
+//        LCANodeData node1Data = (LCANodeData) node1.getNodeData().getReference();
+//        LCANodeData node2Data = (LCANodeData) node2.getNodeData().getReference();
+        LCANodeData node1Data = getLCANodeDataFromNode(node1);
+        LCANodeData node2Data = getLCANodeDataFromNode(node2);
+
         PhylogenyNode node1CompleteBinaryTreeNode = node1Data.getCompleteBinaryTreeNode();
         PhylogenyNode node2CompleteBinaryTreeNode = node2Data.getCompleteBinaryTreeNode();
         PhylogenyNode completeBinaryTreeLCA = completeBinaryTreeLCAFinder.getLCA(node1CompleteBinaryTreeNode, node2CompleteBinaryTreeNode); // b
-        int cbtLCAHeight = ((CompleteBinaryTreeLCANodeData) completeBinaryTreeLCA.getNodeData().getReference()).getHeight(); // h(b)
+        int cbtLCAHeight = ((NodeDataReference) completeBinaryTreeLCA.getNodeData().getReference()).getCompleteBinaryTreeLCANodeData().getHeight(); // h(b)
         int node1BitNumber = node1Data.getBitNumber();
         int node2BitNumber = node2Data.getBitNumber();
         int k = node1BitNumber & node2BitNumber;
@@ -55,8 +58,10 @@ public class ConstantTimeLCA {
         PhylogenyNode node1ToLCARunEnteringNode = findNodeToLCARunEnteringNode(node1, lcaMaxHeightSubtreeNodeHeight);
         PhylogenyNode node2ToLCARunEnteringNode = findNodeToLCARunEnteringNode(node2, lcaMaxHeightSubtreeNodeHeight);
 
-        int n1tlcarenDfsNumber = ((LCANodeData) node1ToLCARunEnteringNode.getNodeData().getReference()).getDfsNumber();
-        int n2tlcarenDfsNumber = ((LCANodeData) node2ToLCARunEnteringNode.getNodeData().getReference()).getDfsNumber();
+//        int n1tlcarenDfsNumber = ((LCANodeData) node1ToLCARunEnteringNode.getNodeData().getReference()).getDfsNumber();
+//        int n2tlcarenDfsNumber = ((LCANodeData) node2ToLCARunEnteringNode.getNodeData().getReference()).getDfsNumber();
+        int n1tlcarenDfsNumber = getLCANodeDataFromNode(node1ToLCARunEnteringNode).getDfsNumber();
+        int n2tlcarenDfsNumber = getLCANodeDataFromNode(node2ToLCARunEnteringNode).getDfsNumber();
 
         PhylogenyNode z = n1tlcarenDfsNumber < n2tlcarenDfsNumber ? node1ToLCARunEnteringNode : node2ToLCARunEnteringNode;
 
@@ -65,7 +70,8 @@ public class ConstantTimeLCA {
 
     private PhylogenyNode findNodeToLCARunEnteringNode(PhylogenyNode node, int lcaMaxHeightSubtreeNodeHeight){ // x, j=h(I(z))
         PhylogenyNode nodeToLCARunEnteringNode;
-        LCANodeData nodeData = (LCANodeData) node.getNodeData().getReference();
+//        LCANodeData nodeData = (LCANodeData) node.getNodeData().getReference();
+        LCANodeData nodeData = getLCANodeDataFromNode(node);
         PhylogenyNode nodeMaxHeightSubtreeNode = nodeData.getMaxHeightSubtreeNode(); // I(x)
         int nmhsnHeight = ((LCANodeData) nodeMaxHeightSubtreeNode.getNodeData().getReference()).getLeastSignificant1BitIndex(); // h(I(x))
         if(nmhsnHeight == lcaMaxHeightSubtreeNodeHeight) { // if h(I(x)) == h(I(z))
@@ -74,7 +80,8 @@ public class ConstantTimeLCA {
         else {
             int nodeBitNumber = nodeData.getBitNumber();
             int h_i_w = (int)Math.floor(Math.log(((int) Math.pow(2, lcaMaxHeightSubtreeNodeHeight - 1) - 1) & nodeBitNumber)/Math.log(2)) + 1; // h(I(w))
-            int i_x_dfsNumber = ((LCANodeData)nodeMaxHeightSubtreeNode.getNodeData().getReference()).getDfsNumber();
+//            int i_x_dfsNumber = ((LCANodeData)nodeMaxHeightSubtreeNode.getNodeData().getReference()).getDfsNumber();
+            int i_x_dfsNumber = getLCANodeDataFromNode(nodeMaxHeightSubtreeNode).getDfsNumber();
             int i_w_dfsNumber = i_x_dfsNumber >> h_i_w - 1;
             i_w_dfsNumber |= 1;
             i_w_dfsNumber = i_w_dfsNumber << h_i_w - 1;
@@ -101,7 +108,8 @@ public class ConstantTimeLCA {
         PhylogenyNodeIterator iterator = tree.iteratorPostorder();
         while (iterator.hasNext()){
             PhylogenyNode currentNode = iterator.next();
-            LCANodeData currentNodeData = (LCANodeData) currentNode.getNodeData().getReference();
+//            LCANodeData currentNodeData = (LCANodeData) currentNode.getNodeData().getReference();
+            LCANodeData currentNodeData = getLCANodeDataFromNode(currentNode);
             PhylogenyNode maxHeightSubtreeNode;
 
             if(currentNode.isExternal()) {
@@ -111,14 +119,16 @@ public class ConstantTimeLCA {
                 int lsbIndex = currentNodeData.getLeastSignificant1BitIndex();
                 PhylogenyNode child1 = currentNode.getChildNode1();
                 PhylogenyNode child2 = currentNode.getChildNode2();
-                LCANodeData child1NodeData = (LCANodeData) child1.getNodeData().getReference();
-                LCANodeData child2NodeData = (LCANodeData) child2.getNodeData().getReference();
+//                LCANodeData child1NodeData = (LCANodeData) child1.getNodeData().getReference();
+                LCANodeData child1NodeData = getLCANodeDataFromNode(child1);
+//                LCANodeData child2NodeData = (LCANodeData) child2.getNodeData().getReference();
+                LCANodeData child2NodeData = getLCANodeDataFromNode(child2);
 //                int child1LSBIndex = child1NodeData.getLeastSignificant1BitIndex(); // According to Gusfield??
 //                int child2LSBIndex = child2NodeData.getLeastSignificant1BitIndex();
                 PhylogenyNode child1MaxHeightSubtreeNode = child1NodeData.getMaxHeightSubtreeNode();
                 PhylogenyNode child2MaxHeightSubtreeNode = child2NodeData.getMaxHeightSubtreeNode();
-                int child1LSBIndex = ((LCANodeData)child1MaxHeightSubtreeNode.getNodeData().getReference()).getLeastSignificant1BitIndex();
-                int child2LSBIndex = ((LCANodeData)child2MaxHeightSubtreeNode.getNodeData().getReference()).getLeastSignificant1BitIndex();
+                int child1LSBIndex = getLCANodeDataFromNode(child1MaxHeightSubtreeNode).getLeastSignificant1BitIndex();
+                int child2LSBIndex = getLCANodeDataFromNode(child2MaxHeightSubtreeNode).getLeastSignificant1BitIndex();
 
                 if(lsbIndex > child1LSBIndex && lsbIndex > child2LSBIndex){
                     maxHeightSubtreeNode = currentNode;
@@ -128,15 +138,15 @@ public class ConstantTimeLCA {
 
                 // set heads of runs
                 if(child1MaxHeightSubtreeNode != maxHeightSubtreeNode){
-                    int child1MaxHeightSubtreeNodeNumber = ((LCANodeData)child1MaxHeightSubtreeNode.getNodeData().getReference()).getDfsNumber();
+                    int child1MaxHeightSubtreeNodeNumber = getLCANodeDataFromNode(child1MaxHeightSubtreeNode).getDfsNumber();
                     headsOfRuns[child1MaxHeightSubtreeNodeNumber] = child1;
                 }
                 if(child2MaxHeightSubtreeNode != maxHeightSubtreeNode){
-                    int child2MaxHeightSubtreeNodeNumber = ((LCANodeData)child2MaxHeightSubtreeNode.getNodeData().getReference()).getDfsNumber();
+                    int child2MaxHeightSubtreeNodeNumber = getLCANodeDataFromNode(child2MaxHeightSubtreeNode).getDfsNumber();
                     headsOfRuns[child2MaxHeightSubtreeNodeNumber] = child2;
                 }
                 if(currentNode.isRoot()){
-                    int maxHeightSubtreeNodeNumber = ((LCANodeData)maxHeightSubtreeNode.getNodeData().getReference()).getDfsNumber();
+                    int maxHeightSubtreeNodeNumber = getLCANodeDataFromNode(maxHeightSubtreeNode).getDfsNumber();
                     headsOfRuns[maxHeightSubtreeNodeNumber] = currentNode;
                 }
             }
@@ -152,9 +162,9 @@ public class ConstantTimeLCA {
         PhylogenyNodeIterator iterator = tree.iteratorPreorder();
         while (iterator.hasNext()){
             PhylogenyNode currentNode = iterator.next();
-            LCANodeData currentNodeData = (LCANodeData) currentNode.getNodeData().getReference();
+            LCANodeData currentNodeData = getLCANodeDataFromNode(currentNode);
             PhylogenyNode maxHeightSubtreeNode = currentNodeData.getMaxHeightSubtreeNode();
-            int maxHeightSubtreeNodeNumber = ((LCANodeData)maxHeightSubtreeNode.getNodeData().getReference()).getDfsNumber();
+            int maxHeightSubtreeNodeNumber = getLCANodeDataFromNode(maxHeightSubtreeNode).getDfsNumber();
             PhylogenyNode completeBinaryTreeNode = completeBinaryTreeLCA.getNodeFromPathNumber(maxHeightSubtreeNodeNumber);
             currentNodeData.setCompleteBinaryTreeNode(completeBinaryTreeNode);
         }
@@ -169,15 +179,18 @@ public class ConstantTimeLCA {
             if(currentNode.isRoot()) parentBitNumber = 0;
             else {
                 PhylogenyNode parent = currentNode.getParent();
-                parentBitNumber = ((LCANodeData)parent.getNodeData().getReference()).getBitNumber();
+                parentBitNumber = getLCANodeDataFromNode(parent).getBitNumber();
             }
-            LCANodeData currentNodeData = (LCANodeData) currentNode.getNodeData().getReference();
+            LCANodeData currentNodeData = getLCANodeDataFromNode(currentNode);
             PhylogenyNode maxHeightSubtreeNode = currentNodeData.getMaxHeightSubtreeNode();
-            int heightOfMaxHeightSubtreeNode = ((LCANodeData) maxHeightSubtreeNode.getNodeData().getReference()).getLeastSignificant1BitIndex();
+            int heightOfMaxHeightSubtreeNode = getLCANodeDataFromNode(maxHeightSubtreeNode).getLeastSignificant1BitIndex();
             int bitNumber = parentBitNumber | (int)Math.pow(2, heightOfMaxHeightSubtreeNode-1); // set bit heightOfMaxHeightSubtreeNode to 1
             currentNodeData.setBitNumber(bitNumber);
         }
     }
 
+    private LCANodeData getLCANodeDataFromNode(PhylogenyNode node){
+        return ((NodeDataReference) node.getNodeData().getReference()).getLcaNodeData();
+    }
 
 }
