@@ -1,5 +1,7 @@
 package nlogn;
 
+import Utilities.DataObjects.MiNodeData;
+import Utilities.DataObjects.NodeDataReference;
 import Utilities.ForesterNewickParser;
 import Utilities.PhylogenyGenerator;
 import org.forester.phylogeny.Phylogeny;
@@ -106,15 +108,17 @@ public class MAST {
             PhylogenyNode sNode = decomposition.get(i+1).getName().equals(""+ firstChild.getName()) ? secondChild : firstChild;
 
             if (sNode.isExternal()) {
-                MiNodeData nodeData = new MiNodeData();
-                nodeData.setMiNumber(i+1);
-                sNode.getNodeData().addReference(nodeData);
+                MiNodeData miNodeData = new MiNodeData();
+                miNodeData.setMiNumber(i+1);
+                NodeDataReference nodeDataReference = (NodeDataReference) sNode.getNodeData().getReference();
+                nodeDataReference.setMiNodeData(miNodeData);
             }
             else {
                 for (PhylogenyNode sChild : sNode.getAllExternalDescendants()) {
-                    MiNodeData nodeData = new MiNodeData();
-                    nodeData.setMiNumber(i+1);
-                    sChild.getNodeData().addReference(nodeData);
+                    MiNodeData miNodeData = new MiNodeData();
+                    miNodeData.setMiNumber(i + 1);
+                    NodeDataReference nodeDataReference = (NodeDataReference) sChild.getNodeData().getReference();
+                    nodeDataReference.setMiNodeData(miNodeData);
                 }
             }
         }
