@@ -120,21 +120,5 @@ public class MAST {
         }
     }
 
-    private class MiNodeData extends Reference {
-        public int getMiNumber() {
-            return miNumber;
-        }
-
-        public void setMiNumber(int miNumber) {
-            this.miNumber = miNumber;
-        }
-
-        private int miNumber;
-
-        public MiNodeData() {
-            super("");
-        }
-
-    }
 
 }
