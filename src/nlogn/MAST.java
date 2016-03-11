@@ -105,7 +105,7 @@ public class MAST {
             PhylogenyNode firstChild = currentNode.getChildNode1();
             PhylogenyNode secondChild = currentNode.getChildNode2();
 
-            PhylogenyNode sNode = decomposition.get(i+1).getName().equals(""+ firstChild.getName()) ? secondChild : firstChild;
+            PhylogenyNode sNode = (decomposition.get(i+1).getId() == firstChild.getId()) ? secondChild : firstChild;
 
             if (sNode.isExternal()) {
                 MiNodeData miNodeData = new MiNodeData();
@@ -123,6 +123,5 @@ public class MAST {
             }
         }
     }
-
 
 }
