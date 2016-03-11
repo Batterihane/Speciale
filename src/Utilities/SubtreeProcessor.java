@@ -14,7 +14,7 @@ import java.util.Stack;
 public class SubtreeProcessor {
     private int[] depths;
     private int treeSize;
-    private LCA lca;
+    private ConstantTimeLCA lca;
     private int maxDepth;
 
     public static void main(String[] args) {
@@ -34,7 +34,7 @@ public class SubtreeProcessor {
 
     public SubtreeProcessor(Phylogeny tree){
         computeDepths(tree);
-        lca = new LCA(tree);
+        lca = new ConstantTimeLCA(tree);
     }
 
     private void computeDepths(Phylogeny tree) {

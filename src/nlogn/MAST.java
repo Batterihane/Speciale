@@ -38,15 +38,20 @@ public class MAST {
     public Phylogeny getMAST(Phylogeny tree1, Phylogeny tree2){
         addNodeDataReferences(tree1);
         addNodeDataReferences(tree2);
+
         List<PhylogenyNode> tree1Decomposition = computeFirstDecomposition(tree1);
         List<List<PhylogenyNode>> tree2Decomposition = computeSecondDecomposition(tree2);
+
         List<Phylogeny> siSubtrees = induceSubtrees(tree1Decomposition, tree1, tree2);
 
-        throw new NotImplementedException();
+//        throw new NotImplementedException();
+        return new Phylogeny();
     }
 
     public List<Phylogeny> induceSubtrees(List<PhylogenyNode> centroidPath, Phylogeny tree1, Phylogeny tree2){
+        int i = tree1.getNumberOfExternalNodes();
         updateMiNumbers(centroidPath);
+
         PhylogenyNode[] sortedTree1Leaves = sortTree1LeavesAndSetTwins(tree1, tree2);
 
         List<PhylogenyNode>[] sortedMiTree2Leaves = new List[centroidPath.size()];
@@ -60,10 +65,12 @@ public class MAST {
 
         List<Phylogeny> result = new ArrayList<>();
         SubtreeProcessor subtreeProcessor = new SubtreeProcessor(tree2);
+        long time = System.nanoTime();
         for (List<PhylogenyNode> miList : sortedMiTree2Leaves){
             if(miList == null) continue;
             result.add(subtreeProcessor.induceSubtree(miList));
         }
+        System.out.println((int)((System.nanoTime() - time)/(i*(Math.log(i)/Math.log(2)))));
         return result;
     }
 
