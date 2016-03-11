@@ -7,6 +7,7 @@ import Utilities.SubtreeProcessor;
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -23,12 +24,12 @@ public class Runner {
 
         SubtreeProcessor subtreeProcessor = new SubtreeProcessor(tree1);
         List<PhylogenyNode> leaves = tree1.getExternalNodes();
-        PhylogenyNode[] leavesSubset = new PhylogenyNode[5];
-        leavesSubset[0] = leaves.get(0);
-        leavesSubset[1] = leaves.get(4);
-        leavesSubset[2] = leaves.get(5);
-        leavesSubset[3] = leaves.get(7);
-        leavesSubset[4] = leaves.get(9);
+        List<PhylogenyNode> leavesSubset = new ArrayList<>();
+        leavesSubset.add(leaves.get(0));
+        leavesSubset.add(leaves.get(4));
+        leavesSubset.add(leaves.get(5));
+        leavesSubset.add(leaves.get(7));
+        leavesSubset.add(leaves.get(9));
         foresterNewickParser.displayPhylogeny(subtreeProcessor.induceSubtree(leavesSubset));
 
         for(PhylogenyNode node : leavesSubset){

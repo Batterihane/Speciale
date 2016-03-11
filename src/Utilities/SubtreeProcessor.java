@@ -4,6 +4,8 @@ import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
 import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
 
 /**
@@ -14,6 +16,21 @@ public class SubtreeProcessor {
     private int treeSize;
     private LCA lca;
     private int maxDepth;
+
+    public static void main(String[] args) {
+        ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
+        Phylogeny tree = PhylogenyGenerator.generateTree(10);
+        ArrayList<PhylogenyNode> nodes = new ArrayList<>();
+        PhylogenyNode firstExternalNode = tree.getFirstExternalNode();
+        nodes.add(firstExternalNode);
+        nodes.add(firstExternalNode.getNextExternalNode());
+        foresterNewickParser.displayPhylogeny(tree);
+        SubtreeProcessor subtreeProcessor = new SubtreeProcessor(tree);
+        Phylogeny phylogeny = subtreeProcessor.induceSubtree(nodes);
+        foresterNewickParser.displayPhylogeny(phylogeny);
+        foresterNewickParser.displayPhylogeny(tree);
+        System.out.println("done");
+    }
 
     public SubtreeProcessor(Phylogeny tree){
         computeDepths(tree);
@@ -35,7 +52,7 @@ public class SubtreeProcessor {
         }
     }
 
-    public Phylogeny induceSubtree(PhylogenyNode[] nodes){
+    public Phylogeny induceSubtree(List<PhylogenyNode> nodes){
         PhylogenyNode[] subtreeNodes = computeSubtreeNodes(nodes);
         Stack<Integer>[] nodeBuckets = computeNodeBuckets(subtreeNodes);
         IntegerPair[] leftRightIndexes = computeInitialLeftRightIndexes(subtreeNodes.length);
@@ -53,6 +70,7 @@ public class SubtreeProcessor {
             PhylogenyNode currentNode = subtreeNodes[i];
             PhylogenyNode newNode = new PhylogenyNode();
             newNode.setName(currentNode.getName());
+            newNode.setLink(currentNode);
             newSubtreeNodes[i] = newNode;
         }
         for (int i = 0; i < subtreeNodes.length; i++) {
@@ -110,15 +128,15 @@ public class SubtreeProcessor {
         return linkedSubtreeNodes;
     }
 
-    private PhylogenyNode[] computeSubtreeNodes(PhylogenyNode[] nodes) {
-        int subtreeSize = nodes.length * 2 - 1;
+    private PhylogenyNode[] computeSubtreeNodes(List<PhylogenyNode> nodes) {
+        int subtreeSize = nodes.size() * 2 - 1;
         PhylogenyNode[] subtreeNodes = new PhylogenyNode[subtreeSize];
 
-        for (int i = 0; i < nodes.length-1; i++) {
-            subtreeNodes[i*2] = nodes[i];
-            subtreeNodes[i*2+1] = lca.getLCA(nodes[i], nodes[i+1]);
+        for (int i = 0; i < nodes.size()-1; i++) {
+            subtreeNodes[i*2] = nodes.get(i);
+            subtreeNodes[i*2+1] = lca.getLCA(nodes.get(i), nodes.get(i+1));
         }
-        subtreeNodes[(nodes.length-1)*2] = nodes[nodes.length-1];
+        subtreeNodes[(nodes.size()-1)*2] = nodes.get(nodes.size()-1);
         return subtreeNodes;
     }
 

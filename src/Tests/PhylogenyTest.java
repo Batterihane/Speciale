@@ -10,7 +10,19 @@ import org.forester.phylogeny.PhylogenyNode;
  */
 public class PhylogenyTest {
     public static void main(String[] args) {
-        addChildRuntimeTest();
+        getAllExternalDescendantsRuntimeTest();
+    }
+
+    private static void getAllExternalDescendantsRuntimeTest() {
+        for (int i = 100; i < 50000; i+= 100) {
+            Phylogeny tree = PhylogenyGenerator.generateTree(i);
+            PhylogenyNode root = tree.getRoot();
+            long time = System.nanoTime();
+            root.getAllExternalDescendants();
+            time = System.nanoTime() - time;
+            time = time/i;
+            System.out.println(time);
+        }
     }
 
     private static void addChildRuntimeTest() {

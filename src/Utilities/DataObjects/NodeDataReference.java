@@ -8,7 +8,7 @@ import org.forester.phylogeny.data.Reference;
 public class NodeDataReference extends Reference {
     private LCANodeData lcaNodeData;
     private CompleteBinaryTreeLCANodeData completeBinaryTreeLCANodeData;
-    private MiNodeData miNodeData;
+    private MASTNodeData mastNodeData;
 
     public NodeDataReference() {
         super("");
@@ -32,12 +32,11 @@ public class NodeDataReference extends Reference {
         this.completeBinaryTreeLCANodeData = completeBinaryTreeLCANodeData;
     }
 
-
-    public MiNodeData getMiNodeData() {
-        return miNodeData;
+    public MASTNodeData getMastNodeData() {
+        return mastNodeData;
     }
 
-    public void setMiNodeData(MiNodeData miNodeData) {
-        this.miNodeData = miNodeData;
+    public void setMastNodeData(MASTNodeData mastNodeData) {
+        this.mastNodeData = mastNodeData;
     }
 }

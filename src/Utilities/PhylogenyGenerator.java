@@ -31,7 +31,7 @@ public class PhylogenyGenerator {
         List<PhylogenyNode> nodes = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             PhylogenyNode newNode = new PhylogenyNode();
-            newNode.setName("Leaf_" + i);
+            newNode.setName(i + "");
             nodes.add(newNode);
         }
 
