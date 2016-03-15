@@ -63,10 +63,6 @@ public class MAST {
             graphs[i] = graph;
         }
 
-        // add u_p edges to graphs
-        PhylogenyNode u_p = tree1Decomposition.get(tree1Decomposition.size()-1);
-        findAndAddGraphEdgesFromLeaf(u_p);
-
         // add u_i edges to graphs
         for (int i = 0; i < siSubtrees.size(); i++) {
 //            PhylogenyNode currentTree1DecompositionNode = tree1Decomposition.get(i);
@@ -88,37 +84,40 @@ public class MAST {
                 PhylogenyNode currentSiNode = siIterator.next();
                 PhylogenyNode currentSiParent = currentSiNode.getParent();
                 PhylogenyNode startOfSiParentCentroidPath;
+                PhylogenyNode currentSiParentT2Node;
                 if(currentSiParent != null){
-                    PhylogenyNode currentSiParentT2Node = currentSiParent.getLink();
+                    currentSiParentT2Node = currentSiParent.getLink();
                     startOfSiParentCentroidPath = currentSiParentT2Node.getLink();
                 }
-                else startOfSiParentCentroidPath = null;
-
-                // first iteration is different since currentT2Node might not be on a path, and if it is at a path an edge should always be added (even when at stop condition)
-                PhylogenyNode currentT2Node = currentSiNode.getLink();
-                PhylogenyNode startOfCentroidPath = currentT2Node.getLink();
-                if(startOfCentroidPath != null){ // if currentT2Node is not on a path
-                    MASTNodeData startOfCentroidPathNodeData = getMASTNodeDataFromNode(startOfCentroidPath);
-                    List<GraphEdge> graph = startOfCentroidPathNodeData.getGraph();
-                    GraphEdge newEdge = new GraphEdge(u_i, currentT2Node);
-                    graph.add(newEdge);
-                    currentT2Node = startOfCentroidPath.getParent();
-                }
                 else {
-                    currentT2Node = currentT2Node.getParent();
+                    startOfSiParentCentroidPath = null;
+                    currentSiParentT2Node = null;
                 }
-                // remaining iterations
+
+                PhylogenyNode currentT2Node = currentSiNode.getLink();
+
+                // walk up through tree2
                 while (currentT2Node != null){
-                    startOfCentroidPath = currentT2Node.getLink();
-                    if(startOfCentroidPath == startOfSiParentCentroidPath) break; // stop when a vertex in the centroid path containing the parent of z(currentSiNode) in Si is reached
+                    if(currentT2Node == currentSiParentT2Node) break; // parent has done it from here
+                    PhylogenyNode startOfCentroidPath = currentT2Node.getLink();
+                    if(startOfCentroidPath == null){ // currentT2Node is not on a path
+                        currentT2Node = currentT2Node.getParent();
+                        continue;
+                    }
                     MASTNodeData startOfCentroidPathNodeData = getMASTNodeDataFromNode(startOfCentroidPath);
                     List<GraphEdge> graph = startOfCentroidPathNodeData.getGraph();
                     GraphEdge newEdge = new GraphEdge(u_i, currentT2Node);
                     graph.add(newEdge);
+                    if(startOfCentroidPath == startOfSiParentCentroidPath) break; // parent has done it from here
                     currentT2Node = startOfCentroidPath.getParent();
                 }
             }
         }
+
+        // add u_p edges to graphs
+        PhylogenyNode u_p = tree1Decomposition.get(tree1Decomposition.size()-1);
+        findAndAddGraphEdgesFromLeaf(u_p);
+
         return graphs;
     }
 
