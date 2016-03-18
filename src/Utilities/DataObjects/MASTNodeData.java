@@ -1,5 +1,6 @@
 package Utilities.DataObjects;
 
+import nlogn.Graph;
 import nlogn.GraphEdge;
 import org.forester.phylogeny.PhylogenyNode;
 import org.forester.phylogeny.data.Reference;
@@ -12,7 +13,7 @@ import java.util.List;
 public class MASTNodeData extends Reference {
     private int miNumber;
     private PhylogenyNode twin;
-    private List<GraphEdge> graph; // only for nodes in T2 at the beginning of a centroid path
+    private Graph graph; // only for nodes in T2 at the beginning of a centroid path
 
     public PhylogenyNode getTwin() {
         return twin;
@@ -30,11 +31,11 @@ public class MASTNodeData extends Reference {
         this.miNumber = miNumber;
     }
 
-    public List<GraphEdge> getGraph() {
+    public Graph getGraph() {
         return graph;
     }
 
-    public void setGraph(List<GraphEdge> graph) {
+    public void setGraph(Graph graph) {
         this.graph = graph;
     }
 

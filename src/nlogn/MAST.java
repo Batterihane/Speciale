@@ -44,19 +44,19 @@ public class MAST {
 
         List<Phylogeny> siSubtrees = induceSubtrees(tree1Decomposition, tree1, tree2);
 
-        List<GraphEdge>[] graphs = findAndAddGraphEdges(tree1Decomposition, tree2Decomposition, siSubtrees);
+        Graph[] graphs = findAndAddGraphEdges(tree1Decomposition, tree2Decomposition, siSubtrees);
 
 
 //        throw new NotImplementedException();
         return new Phylogeny();
     }
 
-    private List<GraphEdge>[] findAndAddGraphEdges(List<PhylogenyNode> tree1Decomposition, List<List<PhylogenyNode>> tree2Decomposition, List<Phylogeny> siSubtrees) {
-        List<GraphEdge>[] graphs = new List[tree2Decomposition.size()];
+    private Graph[] findAndAddGraphEdges(List<PhylogenyNode> tree1Decomposition, List<List<PhylogenyNode>> tree2Decomposition, List<Phylogeny> siSubtrees) {
+        Graph[] graphs = new Graph[tree2Decomposition.size()];
         // add graphs and references to graphs
         for (int i = 0; i < tree2Decomposition.size(); i++) {
             List<PhylogenyNode> tree2CentroidPath = tree2Decomposition.get(i);
-            List<GraphEdge> graph = new ArrayList<>();
+            Graph graph = new Graph(tree2CentroidPath);
             PhylogenyNode startNode = tree2CentroidPath.get(0);
             MASTNodeData startNodeData = getMASTNodeDataFromNode(startNode);
             startNodeData.setGraph(graph);
@@ -105,9 +105,10 @@ public class MAST {
                         continue;
                     }
                     MASTNodeData startOfCentroidPathNodeData = getMASTNodeDataFromNode(startOfCentroidPath);
-                    List<GraphEdge> graph = startOfCentroidPathNodeData.getGraph();
+                    Graph currentGraph = startOfCentroidPathNodeData.getGraph();
+
                     GraphEdge newEdge = new GraphEdge(u_i, currentT2Node);
-                    graph.add(newEdge);
+                    currentGraph.addEdge(newEdge);
                     if(startOfCentroidPath == startOfSiParentCentroidPath) break; // parent has done it from here
                     currentT2Node = startOfCentroidPath.getParent();
                 }
@@ -133,9 +134,9 @@ public class MAST {
                 continue;
             }
             MASTNodeData startOfCentroidPathNodeData = getMASTNodeDataFromNode(startOfCentroidPath);
-            List<GraphEdge> graph = startOfCentroidPathNodeData.getGraph();
+            Graph currentGraph = startOfCentroidPathNodeData.getGraph();
             GraphEdge newEdge = new GraphEdge(leaf, currentT2Node);
-            graph.add(newEdge);
+            currentGraph.addEdge(newEdge);
             currentT2Node = startOfCentroidPath.getParent();
         }
     }
