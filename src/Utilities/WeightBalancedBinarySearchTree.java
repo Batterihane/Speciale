@@ -71,10 +71,11 @@ public class WeightBalancedBinarySearchTree {
 
             if(j == i + 1){
                 PhylogenyNode newNode = new PhylogenyNode();
+                newNode.setName(j + "");
                 PhylogenyNode child1 = new PhylogenyNode();
-                child1.setName(weights[i] + "");
+                child1.setName(i + ": " + weights[i]);
                 PhylogenyNode child2 = new PhylogenyNode();
-                child2.setName(weights[j] + "");
+                child2.setName(j + ": " + weights[j]);
                 newNode.setChild1(child1);
                 newNode.setChild2(child2);
                 if(isLeftChild) parentNode.setChild1(newNode);
@@ -85,6 +86,10 @@ public class WeightBalancedBinarySearchTree {
             int indexOfCut = findRootIndex(l, r, i, j);
 
             PhylogenyNode newNode = new PhylogenyNode();
+            newNode.setName(indexOfCut + "");
+            PhylogenyNode dummyNode = new PhylogenyNode();
+            newNode.setChild1(dummyNode);
+            newNode.setChild2(dummyNode);
             if(parentNode == null){
                 tree.setRoot(newNode);
             }
@@ -100,7 +105,7 @@ public class WeightBalancedBinarySearchTree {
             }
             else {
                 PhylogenyNode child1 = new PhylogenyNode();
-                child1.setName(weights[i] + "");
+                child1.setName(i + ": " + weights[i]);
                 newNode.setChild1(child1);
             }
 
@@ -111,7 +116,7 @@ public class WeightBalancedBinarySearchTree {
             }
             else {
                 PhylogenyNode child2 = new PhylogenyNode();
-                child2.setName(weights[j] + "");
+                child2.setName(j + ": " + weights[j]);
                 newNode.setChild2(child2);
             }
         }
