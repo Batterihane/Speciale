@@ -7,7 +7,7 @@ import Utilities.WeightBalancedBinarySearchTree;
  */
 public class WeightBalancedBinarySearchTreeTest {
     public static void main(String[] args) {
-        int size = 100;
+        int size = 10000000;
         WeightBalancedBinarySearchTree weightBalancedBinarySearchTree = new WeightBalancedBinarySearchTree();
 
         int[] weights = new int[size];
@@ -15,11 +15,17 @@ public class WeightBalancedBinarySearchTreeTest {
             weights[i] = i;
         }
 
-        for (int i = 10; i < size; i+=10) {
+////        int leftOfMiddleIndex = (size + 1) / 2 - 1;
+//        int leftOfMiddleIndex = 0;
+//        weightBalancedBinarySearchTree.testerIterative(weights, leftOfMiddleIndex, 0, size-1);
+//        System.out.println(weightBalancedBinarySearchTree.getNumberOfCallsToFindIndexOfCut());
+
+        for (int i = 10000; i < size; i+=10000) {
             int leftOfMiddleIndex = (i + 1) / 2 - 1;
+//            int leftOfMiddleIndex = 1;
             long time = System.nanoTime();
-            weightBalancedBinarySearchTree.tester(weights, leftOfMiddleIndex, 0, i);
-            System.out.println(System.nanoTime() - time);
+            weightBalancedBinarySearchTree.testerIterative(weights, leftOfMiddleIndex, 0, i-1);
+            System.out.println((System.nanoTime() - time)/i);
         }
     }
 }
