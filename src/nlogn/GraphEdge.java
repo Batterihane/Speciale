@@ -11,7 +11,7 @@ public class GraphEdge {
     private int whiteWeight;
     private int greenWeight;
     private int redWeight;
-    private PhylogenyNode map;
+    private PhylogenyNode mapNode;
 
     public GraphEdge(PhylogenyNode left, PhylogenyNode right){
         this.left = left;
@@ -58,11 +58,11 @@ public class GraphEdge {
         this.redWeight = redWeight;
     }
 
-    public PhylogenyNode getMap() {
-        return map;
+    public PhylogenyNode getMapNode() {
+        return mapNode;
     }
 
-    public void setMap(PhylogenyNode map) {
-        this.map = map;
+    public void setMapNode(PhylogenyNode mapNode) {
+        this.mapNode = mapNode;
     }
 }

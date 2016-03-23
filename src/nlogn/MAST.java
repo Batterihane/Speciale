@@ -108,6 +108,7 @@ public class MAST {
                     Graph currentGraph = startOfCentroidPathNodeData.getGraph();
 
                     GraphEdge newEdge = new GraphEdge(u_i, currentT2Node);
+                    newEdge.setMapNode(currentSiNode);
                     currentGraph.addEdge(newEdge);
                     if(startOfCentroidPath == startOfSiParentCentroidPath) break; // parent has done it from here
                     currentT2Node = startOfCentroidPath.getParent();
@@ -136,6 +137,7 @@ public class MAST {
             MASTNodeData startOfCentroidPathNodeData = getMASTNodeDataFromNode(startOfCentroidPath);
             Graph currentGraph = startOfCentroidPathNodeData.getGraph();
             GraphEdge newEdge = new GraphEdge(leaf, currentT2Node);
+            // TODO: set map node??
             currentGraph.addEdge(newEdge);
             currentT2Node = startOfCentroidPath.getParent();
         }

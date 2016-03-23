@@ -12,7 +12,7 @@ import java.util.List;
  */
 public class MASTNodeData extends Reference {
     private int miNumber;
-    private PhylogenyNode twin;
+    private PhylogenyNode twin; // only for leaves in T1
     private Graph graph; // only for nodes in T2 at the beginning of a centroid path
 
     public PhylogenyNode getTwin() {
