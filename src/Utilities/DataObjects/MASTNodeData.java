@@ -11,6 +11,7 @@ import java.util.List;
  * Created by Thomas on 11-03-2016.
  */
 public class MASTNodeData extends Reference {
+    private int lisNumber; // base case
     private int miNumber;
     private PhylogenyNode twin; // only for leaves in T1
     private Graph graph; // only for nodes in T2 at the beginning of a centroid path
@@ -37,6 +38,14 @@ public class MASTNodeData extends Reference {
 
     public void setGraph(Graph graph) {
         this.graph = graph;
+    }
+
+    public int getLisNumber() {
+        return lisNumber;
+    }
+
+    public void setLisNumber(int lisNumber) {
+        this.lisNumber = lisNumber;
     }
 
     public MASTNodeData() {

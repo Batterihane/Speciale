@@ -1,6 +1,7 @@
 package Utilities;
 
 import n_squared.MAST;
+import org.forester.archaeopteryx.Archaeopteryx;
 import org.forester.io.writers.PhylogenyWriter;
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
@@ -19,7 +20,8 @@ public class PhylogenyGenerator {
         Phylogeny tree1 = generateTree(1000);
 
         Phylogeny tree2 = generateTree(1000);
-
+        renameTreeLeavesLeftToRight(tree2);
+//        Archaeopteryx.createApplication(tree2);
         MAST mast = new MAST();
         //int size = mast.getMAST(tree1, tree2);
         //System.out.println(size);
@@ -52,6 +54,46 @@ public class PhylogenyGenerator {
         Phylogeny tree = new Phylogeny();
         tree.setRoot(nodes.get(0));
 
+        return tree;
+    }
+
+    public static void renameTreeLeavesLeftToRight(Phylogeny tree){
+        PhylogenyNodeIterator iterator = tree.iteratorPreorder();
+        int i = 0;
+        while (iterator.hasNext()){
+            PhylogenyNode currentNode = iterator.next();
+            if(currentNode.isExternal()){
+                currentNode.setName(i + "");
+                i++;
+            }
+        }
+    }
+
+    public static Phylogeny generateBaseCaseTree(int size){
+        Random random = new Random();
+
+        List<PhylogenyNode> nodes = new ArrayList<>();
+        for (int i = 0; i < size; i++) {
+            PhylogenyNode newNode = new PhylogenyNode();
+            newNode.setName(i + "");
+            nodes.add(newNode);
+        }
+
+        Phylogeny tree = new Phylogeny();
+        PhylogenyNode root = new PhylogenyNode();
+        tree.setRoot(root);
+        PhylogenyNode currentNode = root;
+        while (nodes.size() > 2){
+            int i = random.nextInt(nodes.size());
+            PhylogenyNode leaf = nodes.get(i);
+            nodes.remove(i);
+            currentNode.setChild1(leaf);
+            PhylogenyNode newInternalNode = new PhylogenyNode();
+            currentNode.setChild2(newInternalNode);
+            currentNode = newInternalNode;
+        }
+        currentNode.setChild1(nodes.get(0));
+        currentNode.setChild2(nodes.get(1));
         return tree;
     }
 }
