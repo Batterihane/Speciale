@@ -124,7 +124,7 @@ public class LongestIncreasingSubsequence {
                     else parents[i] = -1;
                 }
             }
-            else if(currentNumber > increasingSequence.get(lastElementIndex-1)) {
+            else if(currentNumber > increasingSequence.get(lastElementIndex-1) || currentNumber > parent) {
                 if(parent < increasingSequence.get(lastElementIndex-1)){
                     increasingSequence.set(lastElementIndex-1, parent);
                     Integer parentIndex = increasingSequenceIndices.get(lastElementIndex);
@@ -139,26 +139,12 @@ public class LongestIncreasingSubsequence {
                     beforeParents[i] = increasingSequenceIndices.get(lastElementIndex-2);
             }
             else {
-                if(currentNumber > parent){
-                    increasingSequence.set(lastElementIndex-1, parent);
-                    Integer parentIndex = increasingSequenceIndices.get(lastElementIndex);
-                    increasingSequenceIndices.set(lastElementIndex-1, parentIndex);
-                    parents[parentIndex] = beforeParents[parentIndex];
-
-                    increasingSequence.set(lastElementIndex, currentNumber);
-                    increasingSequenceIndices.set(lastElementIndex, i);
-                    parents[i] = increasingSequenceIndices.get(lastElementIndex-1);
-                    if(lastElementIndex > 1)
-                        beforeParents[i] = increasingSequenceIndices.get(lastElementIndex-2);
-                }
-                else {
-                    int currentNumberIndex = binarySearch(increasingSequence, currentNumber);
-                    increasingSequence.set(currentNumberIndex, currentNumber);
-                    increasingSequenceIndices.set(currentNumberIndex, i);
-                    if(currentNumberIndex > 0)
-                        parents[i] = increasingSequenceIndices.get(currentNumberIndex - 1);
-                    else parents[i] = -1;
-                }
+                int currentNumberIndex = binarySearch(increasingSequence, currentNumber);
+                increasingSequence.set(currentNumberIndex, currentNumber);
+                increasingSequenceIndices.set(currentNumberIndex, i);
+                if(currentNumberIndex > 0)
+                    parents[i] = increasingSequenceIndices.get(currentNumberIndex - 1);
+                else parents[i] = -1;
             }
         }
 
