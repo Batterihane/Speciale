@@ -1,5 +1,6 @@
 package n_squared;
 
+import Utilities.DataObjects.NSquaredMASTNodeData;
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
 import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
@@ -12,6 +13,7 @@ import java.util.List;
 public class MAST {
 
     public Phylogeny getMAST(Phylogeny tree1, Phylogeny tree2){
+        setNodeIds(tree1, tree2);
         int[] traversalNumbers = new int[tree1.getNodeCount() + tree2.getNodeCount()];
 
         MASTPair[][] subtreeMASTs = new MASTPair[tree1.getNodeCount()][tree2.getNodeCount()];
@@ -21,12 +23,12 @@ public class MAST {
         for (int i = 0 ; tree1Iterator.hasNext() ; i++){
             PhylogenyNode currentTree1Node = tree1Iterator.next();
             currentTree1Node.getNodeData().getProperties();
-            traversalNumbers[currentTree1Node.getId()] = i;
+            traversalNumbers[getMASTNodeDataFromNode(currentTree1Node).getId()] = i;
 
             PhylogenyNodeIterator tree2Iterator = tree2.iteratorPostorder();
             for (int j = 0 ; tree2Iterator.hasNext() ; j++){
                 PhylogenyNode currentTree2Node = tree2Iterator.next();
-                traversalNumbers[currentTree2Node.getId()] = j;
+                traversalNumbers[getMASTNodeDataFromNode(currentTree2Node).getId()] = j;
 
                 if(currentTree1Node.isExternal()){
                     if(currentTree2Node.isExternal()){
@@ -53,6 +55,23 @@ public class MAST {
         return tree;
     }
 
+    private void setNodeIds(Phylogeny tree1, Phylogeny tree2){
+        PhylogenyNodeIterator tree1Iterator = tree1.iteratorPreorder();
+        int i = 0;
+        while (tree1Iterator.hasNext()) {
+            PhylogenyNode currentNode = tree1Iterator.next();
+            currentNode.getNodeData().setReference(new NSquaredMASTNodeData(i));
+            i++;
+        }
+
+        PhylogenyNodeIterator tree2Iterator = tree2.iteratorPreorder();
+        for (int j = i; tree2Iterator.hasNext(); j++) {
+            PhylogenyNode currentNode = tree2Iterator.next();
+            currentNode.getNodeData().setReference(new NSquaredMASTNodeData(j));
+
+        }
+    }
+
     private void updateParentReferences(Phylogeny tree) {
         PhylogenyNodeIterator phylogenyNodeIterator = tree.iteratorPreorder();
         while (phylogenyNodeIterator.hasNext()) {
@@ -63,11 +82,11 @@ public class MAST {
     }
 
     private MASTPair internalNodeInternalNodeMAST(int[] traversalNumbers, MASTPair[][] subtreeMASTs, PhylogenyNode internalNode1, PhylogenyNode internalNode2, int i, int j){
-        int internalNode1Child1TraversalNumber = traversalNumbers[internalNode1.getChildNode1().getId()];
-        int internalNode1Child2TraversalNumber = traversalNumbers[internalNode1.getChildNode2().getId()];
+        int internalNode1Child1TraversalNumber = traversalNumbers[getMASTNodeDataFromNode(internalNode1.getChildNode1()).getId()];
+        int internalNode1Child2TraversalNumber = traversalNumbers[getMASTNodeDataFromNode(internalNode1.getChildNode2()).getId()];
 
-        int internalNode2Child1TraversalNumber = traversalNumbers[internalNode2.getChildNode1().getId()];
-        int internalNode2Child2TraversalNumber = traversalNumbers[internalNode2.getChildNode2().getId()];
+        int internalNode2Child1TraversalNumber = traversalNumbers[getMASTNodeDataFromNode(internalNode2.getChildNode1()).getId()];
+        int internalNode2Child2TraversalNumber = traversalNumbers[getMASTNodeDataFromNode(internalNode2.getChildNode2()).getId()];
 
         int size1 = subtreeMASTs[internalNode1Child1TraversalNumber][internalNode2Child1TraversalNumber].getSize() + subtreeMASTs[internalNode1Child2TraversalNumber][internalNode2Child2TraversalNumber].getSize();
         int size2 = subtreeMASTs[internalNode1Child1TraversalNumber][internalNode2Child2TraversalNumber].getSize() + subtreeMASTs[internalNode1Child2TraversalNumber][internalNode2Child1TraversalNumber].getSize();
@@ -97,8 +116,8 @@ public class MAST {
     }
 
     private MASTPair internalNodeLeafMAST(int[] traversalNumbers, MASTPair[][] subtreeMASTs, PhylogenyNode internalNode, int leafTraversalNumber) {
-        int internalNodeChild1TraversalNumber = traversalNumbers[internalNode.getChildNode1().getId()];
-        int internalNodeChild2TraversalNumber = traversalNumbers[internalNode.getChildNode2().getId()];
+        int internalNodeChild1TraversalNumber = traversalNumbers[getMASTNodeDataFromNode(internalNode.getChildNode1()).getId()];
+        int internalNodeChild2TraversalNumber = traversalNumbers[getMASTNodeDataFromNode(internalNode.getChildNode2()).getId()];
         MASTPair internalNodeChild1AndLeafMASTPair = subtreeMASTs[internalNodeChild1TraversalNumber][leafTraversalNumber];
         MASTPair internalNodeChild2AndLeafMASTPair = subtreeMASTs[internalNodeChild2TraversalNumber][leafTraversalNumber];
         if(internalNodeChild1AndLeafMASTPair.getSize() >= internalNodeChild2AndLeafMASTPair.getSize()){
@@ -110,8 +129,8 @@ public class MAST {
     }
 
     private MASTPair leafInternalNodeMAST(int[] traversalNumbers, MASTPair[][] subtreeMASTs, int leafTraversalNumber, PhylogenyNode internalNode) {
-        int internalNodeChild1TraversalNumber = traversalNumbers[internalNode.getChildNode1().getId()];
-        int internalNodeChild2TraversalNumber = traversalNumbers[internalNode.getChildNode2().getId()];
+        int internalNodeChild1TraversalNumber = traversalNumbers[getMASTNodeDataFromNode(internalNode.getChildNode1()).getId()];
+        int internalNodeChild2TraversalNumber = traversalNumbers[getMASTNodeDataFromNode(internalNode.getChildNode2()).getId()];
 
         MASTPair leafAndInternalNodeChild1MASTPair = subtreeMASTs[leafTraversalNumber][internalNodeChild1TraversalNumber];
         MASTPair leafAndInternalNodeChild2MASTPair = subtreeMASTs[leafTraversalNumber][internalNodeChild2TraversalNumber];
@@ -156,31 +175,31 @@ public class MAST {
 
         for (int i = 0 ; tree1Iterator.hasNext() ; i++){
             PhylogenyNode currentTree1Node = tree1Iterator.next();
-            traversalNumbers[currentTree1Node.getId()] = i;
+            traversalNumbers[getMASTNodeDataFromNode(currentTree1Node).getId()] = i;
             PhylogenyNodeIterator tree2Iterator = tree2.iteratorPostorder();
             for (int j = 0 ; tree2Iterator.hasNext() ; j++){
                 PhylogenyNode currentTree2Node = tree2Iterator.next();
-                traversalNumbers[currentTree2Node.getId()] = j;
+                traversalNumbers[getMASTNodeDataFromNode(currentTree2Node).getId()] = j;
                 if(currentTree1Node.isExternal()){
                     if(currentTree2Node.isExternal()){
                         subtreeMASTs[i][j] = currentTree1Node.getName().equals(currentTree2Node.getName())? 1 : 0;
                     }
                     else{
-                        int tree2Child1TraversalNumber = traversalNumbers[currentTree2Node.getChildNode1().getId()];
-                        int tree2Child2TraversalNumber = traversalNumbers[currentTree2Node.getChildNode2().getId()];
+                        int tree2Child1TraversalNumber = traversalNumbers[getMASTNodeDataFromNode(currentTree2Node.getChildNode1()).getId()];
+                        int tree2Child2TraversalNumber = traversalNumbers[getMASTNodeDataFromNode(currentTree2Node.getChildNode2()).getId()];
                         subtreeMASTs[i][j] = Math.max(subtreeMASTs[i][tree2Child1TraversalNumber], subtreeMASTs[i][tree2Child2TraversalNumber]);
                     }
                 }
                 else{
-                    int tree1Child1TraversalNumber = traversalNumbers[currentTree1Node.getChildNode1().getId()];
-                    int tree1Child2TraversalNumber = traversalNumbers[currentTree1Node.getChildNode2().getId()];
+                    int tree1Child1TraversalNumber = traversalNumbers[getMASTNodeDataFromNode(currentTree1Node.getChildNode1()).getId()];
+                    int tree1Child2TraversalNumber = traversalNumbers[getMASTNodeDataFromNode(currentTree1Node.getChildNode2()).getId()];
 
                     if(currentTree2Node.isExternal()){
                         subtreeMASTs[i][j] = Math.max(subtreeMASTs[tree1Child1TraversalNumber][j], subtreeMASTs[tree1Child2TraversalNumber][j]);
                     }
                     else{
-                        int tree2Child1TraversalNumber = traversalNumbers[currentTree2Node.getChildNode1().getId()];
-                        int tree2Child2TraversalNumber = traversalNumbers[currentTree2Node.getChildNode2().getId()];
+                        int tree2Child1TraversalNumber = traversalNumbers[getMASTNodeDataFromNode(currentTree2Node.getChildNode1()).getId()];
+                        int tree2Child2TraversalNumber = traversalNumbers[getMASTNodeDataFromNode(currentTree2Node.getChildNode2()).getId()];
 
                         subtreeMASTs[i][j] = max(
                                 subtreeMASTs[tree1Child1TraversalNumber][tree2Child1TraversalNumber] + subtreeMASTs[tree1Child2TraversalNumber][tree2Child2TraversalNumber],
@@ -196,6 +215,10 @@ public class MAST {
         }
 
         return subtreeMASTs[tree1.getNodeCount()-1][tree2.getNodeCount()-1];
+    }
+
+    private NSquaredMASTNodeData getMASTNodeDataFromNode(PhylogenyNode node){
+        return (NSquaredMASTNodeData) node.getNodeData().getReference();
     }
 
 }

@@ -84,7 +84,7 @@ public class MAST {
                 }
             }
         }
-        return result;
+        return copyTree(result);
     }
 
     private PhylogenyNode getSibling(PhylogenyNode leaf) {

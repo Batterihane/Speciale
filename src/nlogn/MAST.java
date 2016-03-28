@@ -50,7 +50,7 @@ public class MAST {
 
         int numberOfLeaves = tree1.getRoot().getNumberOfExternalNodes();
         if(tree1Decomposition.size() == numberOfLeaves && tree2Decomposition.size() == 1){ // base case
-            return baseCase(tree2, tree1);
+            return baseCaseModified(tree2, tree1);
         }
 
         List<Phylogeny> siSubtrees = induceSubtrees(tree1Decomposition, tree1, tree2);
@@ -111,6 +111,49 @@ public class MAST {
             }
         }
         currentBottomMostNode.getParent().setChild2(lastLeaf);
+
+        return tree;
+    }
+
+    private Phylogeny baseCaseModified(Phylogeny tree1, Phylogeny tree2) {
+        PhylogenyNode[] tree1LeavesTopDown = getLeavesTopDownAndSetNumbers(tree1);
+        PhylogenyNode[] tree2LeavesTopDown = getLeavesTopDownAndSetNumbers(tree2);
+
+        // set LIS numbers
+        for (int i = 0; i < tree1LeavesTopDown.length; i++) {
+            PhylogenyNode currentNode = tree1LeavesTopDown[i];
+            MASTNodeData mastNodeData = getMASTNodeDataFromNode(currentNode);
+            mastNodeData.setLisNumber(i);
+            MASTNodeData twinMastNodeData = getMASTNodeDataFromNode(mastNodeData.getTwin());
+            twinMastNodeData.setLisNumber(i);
+        }
+
+        int[] numbers = getLisNumbersFromLeaves(tree2LeavesTopDown);
+        int[] lis = LongestIncreasingSubsequence.findLISModified(numbers);
+
+        int i = 0;
+        Phylogeny tree = new Phylogeny();
+        PhylogenyNode currentBottomMostNode = new PhylogenyNode();
+        tree.setRoot(currentBottomMostNode);
+
+        for (PhylogenyNode currentLeaf : tree2LeavesTopDown){
+            int currentLeafLisNumber = getMASTNodeDataFromNode(currentLeaf).getLisNumber();
+            if(currentLeafLisNumber == lis[i]){
+                if(i == lis.length-1){
+                    currentBottomMostNode.setName(currentLeaf.getName());
+                }
+                else {
+                    PhylogenyNode newLeaf = new PhylogenyNode();
+                    newLeaf.setName(currentLeaf.getName());
+                    currentBottomMostNode.setChild1(newLeaf);
+                    PhylogenyNode newNode = new PhylogenyNode();
+                    currentBottomMostNode.setChild2(newNode);
+                    currentBottomMostNode = newNode;
+
+                    i++;
+                }
+            }
+        }
 
         return tree;
     }
