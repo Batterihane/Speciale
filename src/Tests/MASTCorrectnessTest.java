@@ -11,6 +11,10 @@ import org.forester.phylogeny.Phylogeny;
  */
 public class MASTCorrectnessTest {
     public static void main(String[] args) {
+        nLognVsNSquared();
+    }
+
+    private static void nLognVsNSquared() {
         for (int i = 10; i < 10000; i+= 10) {
             Phylogeny tree1 = PhylogenyGenerator.generateBaseCaseTree(i);
             Phylogeny tree2 = PhylogenyGenerator.generateBaseCaseTree(i);
@@ -24,10 +28,10 @@ public class MASTCorrectnessTest {
             int nSquaredMastSize = nSquaredMast.getNumberOfExternalNodes();
 
             if(nLogNMastSize != nSquaredMastSize){
-                MainFrame tree1Window = Archaeopteryx.createApplication(tree1);
-                MainFrame tree2Window = Archaeopteryx.createApplication(tree2);
-                MainFrame nLogNResultWindow = Archaeopteryx.createApplication(nLogNMast);
-                MainFrame nSquaredResultWindow = Archaeopteryx.createApplication(nSquaredMast);
+                Archaeopteryx.createApplication(tree1);
+                Archaeopteryx.createApplication(tree2);
+                Archaeopteryx.createApplication(nLogNMast);
+                Archaeopteryx.createApplication(nSquaredMast);
 
                 System.out.println(i + ": Failure - nlogn(" + nLogNMastSize + "), nsquared(" + nSquaredMastSize + ")");
                 return;

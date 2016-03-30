@@ -12,9 +12,10 @@ import java.util.List;
  */
 public class MASTNodeData extends Reference {
     private int lisNumber; // base case
-    private int miNumber;
-    private PhylogenyNode twin; // only for leaves in T1
+    private int miNumber; // only for leaves in T1 except for u_p
+    private PhylogenyNode twin; // for all leaves
     private Graph graph; // only for nodes in T2 at the beginning of a centroid path
+    private int subtreeMASTSize; // size of MAST(T1, T2(y)) for node y
 
     public PhylogenyNode getTwin() {
         return twin;
@@ -46,6 +47,14 @@ public class MASTNodeData extends Reference {
 
     public void setLisNumber(int lisNumber) {
         this.lisNumber = lisNumber;
+    }
+
+    public int getSubtreeMASTSize() {
+        return subtreeMASTSize;
+    }
+
+    public void setSubtreeMASTSize(int subtreeMASTSize) {
+        this.subtreeMASTSize = subtreeMASTSize;
     }
 
     public MASTNodeData() {
