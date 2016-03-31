@@ -67,10 +67,7 @@ public class MAST {
 
         computeMiSiMASTs(tree1Decomposition, siSubtrees);
 
-        Graph[] graphs = findAndAddGraphEdges(tree1Decomposition, tree2Decomposition, siSubtrees);
-        for (Graph graph : graphs){
-            setGraphEdgesWeights(graph);
-        }
+        createGraphs(tree1Decomposition, tree2Decomposition, siSubtrees);
 
 //        throw new NotImplementedException();
         return new Phylogeny();
@@ -457,6 +454,19 @@ public class MAST {
     }
 
     // Create graphs
+    private Graph[] createGraphs(List<PhylogenyNode> tree1Decomposition, List<List<PhylogenyNode>> tree2Decomposition, List<Phylogeny> siSubtrees) {
+        Graph[] graphs = findAndAddGraphEdges(tree1Decomposition, tree2Decomposition, siSubtrees);
+        setPathNumbers(tree1Decomposition, tree2Decomposition);
+
+        // masts[i,j] = MAST(x,y) where x is the i'th node of pi and y is the j'th node of X
+        Phylogeny[][] masts = new Phylogeny[tree1Decomposition.size()-1][tree2Decomposition.size()];
+        for (int i = graphs.length-1; i >= 0; i--) {
+            Graph graph = graphs[i];
+            setGraphEdgesWeights(graph, masts);
+            // computeMAST(graph, masts);
+        }
+        return graphs;
+    }
     private Graph[] findAndAddGraphEdges(List<PhylogenyNode> tree1Decomposition, List<List<PhylogenyNode>> tree2Decomposition, List<Phylogeny> siSubtrees) {
         Graph[] graphs = new Graph[tree2Decomposition.size()];
         // add graphs and references to graphs
@@ -471,18 +481,7 @@ public class MAST {
 
         // add u_i edges to graphs
         for (int i = 0; i < siSubtrees.size(); i++) {
-//            PhylogenyNode currentTree1DecompositionNode = tree1Decomposition.get(i);
-//            PhylogenyNode firstChild = currentTree1DecompositionNode.getChildNode1();
-//            PhylogenyNode secondChild = currentTree1DecompositionNode.getChildNode2();
-//
-//            PhylogenyNode miRoot = (tree1Decomposition.get(i+1).getId() == firstChild.getId()) ? secondChild : firstChild;
-//            Phylogeny mi = new Phylogeny();
-//            mi.setRoot(miRoot);
-//
             Phylogeny si = siSubtrees.get(i);
-            // compute sub MASTs recursively
-//            getMAST(mi, si);
-
             PhylogenyNode u_i = tree1Decomposition.get(i);
 
             PhylogenyNodeIterator siIterator = si.iteratorPreorder();
@@ -524,11 +523,11 @@ public class MAST {
 
         // add u_p edges to graphs
         PhylogenyNode u_p = tree1Decomposition.get(tree1Decomposition.size()-1);
-        findAndAddGraphEdgesFromLeaf(u_p, tree1Decomposition, tree2Decomposition);
+        findAndAddGraphEdgesFromLeaf(u_p);
 
         return graphs;
     }
-    private void findAndAddGraphEdgesFromLeaf(PhylogenyNode leaf, List<PhylogenyNode> tree1Decomposition, List<List<PhylogenyNode>> tree2Decomposition) {
+    private void findAndAddGraphEdgesFromLeaf(PhylogenyNode leaf) {
         MASTNodeData mastNodeData = getMASTNodeDataFromNode(leaf);
         PhylogenyNode twin = mastNodeData.getTwin();
         PhylogenyNode currentT2Node = twin;
@@ -547,7 +546,17 @@ public class MAST {
             currentT2Node = startOfCentroidPath.getParent();
         }
     }
-    private void setGraphEdgesWeights(Graph graph){
+    private void setPathNumbers(List<PhylogenyNode> tree1Decomposition, List<List<PhylogenyNode>> tree2Decomposition) {
+        for (int i = 0 ; i < tree1Decomposition.size() ; i++){
+            PhylogenyNode node = tree1Decomposition.get(i);
+            getMASTNodeDataFromNode(node).setPathNumber(i);
+        }
+        for (int i = 0; i < tree2Decomposition.size(); i++) {
+            PhylogenyNode node = tree2Decomposition.get(i).get(0);
+            getMASTNodeDataFromNode(node).setPathNumber(i);
+        }
+    }
+    private void setGraphEdgesWeights(Graph graph, Phylogeny[][] masts){
         for(GraphEdge edge : graph.getEdges()){
             PhylogenyNode leftNode = edge.getLeft();
             PhylogenyNode rightNode = edge.getRight();
@@ -560,40 +569,63 @@ public class MAST {
                 continue;
             }
 
-            // White weight
-            int whiteWeight = -1;
-            if(getMASTNodeDataFromNode(mapNode).getT2Node() != rightNode){ // map(i,j) != v_j
-                whiteWeight = getMASTNodeDataFromNode(mapNode).getSubtreeMASTSize();
-            }
-            else {
-                PhylogenyNode mapNodeFirstChild = mapNode.getChildNode1();
-                PhylogenyNode mapNodeSecondChild = mapNode.getChildNode2();
-                PhylogenyNode rightNodeFirstChild = rightNode.getChildNode1();
-                PhylogenyNode rightNodeSecondChild = rightNode.getChildNode2();
-
-                Phylogeny n_j = new Phylogeny();
-
-                // child is not on a path or it is the first node in its path, i.e. root of N_j
-                if(rightNodeFirstChild.getLink() == null || rightNodeFirstChild.getLink() == rightNodeFirstChild){
-                    n_j.setRoot(rightNodeFirstChild);
-                }
-                else n_j.setRoot(rightNodeSecondChild);
-
-                PhylogenyNodeIterator n_jIterator = n_j.iteratorPreorder();
-                while (n_jIterator.hasNext()){
-                    PhylogenyNode currentNode = n_jIterator.next();
-                    if(currentNode == getMASTNodeDataFromNode(mapNodeFirstChild).getT2Node()){
-                        whiteWeight = getMASTNodeDataFromNode(mapNodeFirstChild).getSubtreeMASTSize();
-                        break;
-                    }
-                    if(currentNode == getMASTNodeDataFromNode(mapNodeSecondChild).getT2Node()){
-                        whiteWeight = getMASTNodeDataFromNode(mapNodeSecondChild).getSubtreeMASTSize();
-                        break;
-                    }
-                }
-            }
+            int whiteWeight = computeWhiteWeight(rightNode, mapNode);
             edge.setWhiteWeight(whiteWeight);
+
+            int greenWeight = getMASTNodeDataFromNode(mapNode).getSubtreeMASTSize();
+            edge.setGreenWeight(greenWeight);
+
+            int redWeight = computeRedWeight(leftNode, rightNode, masts);
+            edge.setRedWeight(redWeight);
+
         }
+    }
+    private int computeWhiteWeight(PhylogenyNode rightNode, PhylogenyNode mapNode) {
+        int whiteWeight = -1;
+        if(getMASTNodeDataFromNode(mapNode).getT2Node() != rightNode){ // map(i,j) != v_j
+            whiteWeight = getMASTNodeDataFromNode(mapNode).getSubtreeMASTSize();
+        }
+        else {
+            PhylogenyNode mapNodeFirstChild = mapNode.getChildNode1();
+            PhylogenyNode mapNodeSecondChild = mapNode.getChildNode2();
+            PhylogenyNode rightNodeFirstChild = rightNode.getChildNode1();
+            PhylogenyNode rightNodeSecondChild = rightNode.getChildNode2();
+
+            Phylogeny n_j = new Phylogeny();
+
+            // child is not on a path or it is the first node in its path, i.e. root of N_j
+            if(rightNodeFirstChild.getLink() == null || rightNodeFirstChild.getLink() == rightNodeFirstChild){
+                n_j.setRoot(rightNodeFirstChild);
+            }
+            else n_j.setRoot(rightNodeSecondChild);
+
+            PhylogenyNodeIterator n_jIterator = n_j.iteratorPreorder();
+            while (n_jIterator.hasNext()){
+                PhylogenyNode currentNode = n_jIterator.next();
+                if(currentNode == getMASTNodeDataFromNode(mapNodeFirstChild).getT2Node()){
+                    whiteWeight = getMASTNodeDataFromNode(mapNodeFirstChild).getSubtreeMASTSize();
+                    break;
+                }
+                if(currentNode == getMASTNodeDataFromNode(mapNodeSecondChild).getT2Node()){
+                    whiteWeight = getMASTNodeDataFromNode(mapNodeSecondChild).getSubtreeMASTSize();
+                    break;
+                }
+            }
+        }
+        return whiteWeight;
+    }
+    private int computeRedWeight(PhylogenyNode leftNode, PhylogenyNode rightNode, Phylogeny[][] masts) {
+        PhylogenyNode rightNodeFirstChild = rightNode.getChildNode1();
+        PhylogenyNode rightNodeSecondChild = rightNode.getChildNode2();
+        PhylogenyNode n_jRoot;
+        if(rightNodeFirstChild.getLink() == null || rightNodeFirstChild.getLink() == rightNodeFirstChild){
+            n_jRoot = rightNodeFirstChild;
+        }
+        else n_jRoot = rightNodeSecondChild;
+        if(n_jRoot.isExternal()) return 1;
+        int leftNodePathNumber = getMASTNodeDataFromNode(leftNode).getPathNumber();
+        int n_jRootPathNumber = getMASTNodeDataFromNode(n_jRoot).getPathNumber();
+        return masts[leftNodePathNumber][n_jRootPathNumber].getRoot().getNumberOfExternalNodes();
     }
 
     // Helper methods

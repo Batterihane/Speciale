@@ -14,6 +14,7 @@ public class MASTNodeData extends Reference {
     private int lisNumber; // base case
     private int miNumber; // only for leaves in T1 except for u_p
     private int leafNumber; // only for leaves in T2
+    private int pathNumber; // for node u_i in pi: i, for node v in pi(x_j): j
     private PhylogenyNode twin; // for all leaves
     private Graph graph; // only for nodes in T2 at the beginning of a centroid path
     private int subtreeMASTSize; // size of MAST(T1, T2(y)) for node y
@@ -82,6 +83,14 @@ public class MASTNodeData extends Reference {
 
     public void setT2Node(PhylogenyNode t2Node) {
         this.t2Node = t2Node;
+    }
+
+    public int getPathNumber() {
+        return pathNumber;
+    }
+
+    public void setPathNumber(int pathNumber) {
+        this.pathNumber = pathNumber;
     }
 
     public MASTNodeData() {
