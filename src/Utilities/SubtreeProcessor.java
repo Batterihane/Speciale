@@ -1,5 +1,7 @@
 package Utilities;
 
+import Utilities.DataObjects.MASTNodeData;
+import Utilities.DataObjects.NodeDataReference;
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
 import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
@@ -70,7 +72,19 @@ public class SubtreeProcessor {
             PhylogenyNode currentNode = subtreeNodes[i];
             PhylogenyNode newNode = new PhylogenyNode();
             newNode.setName(currentNode.getName());
-            newNode.setLink(currentNode);
+
+            // Add node data
+            NodeDataReference nodeDataReference = new NodeDataReference();
+            MASTNodeData newNodeMastNodeData = new MASTNodeData();
+            nodeDataReference.setMastNodeData(newNodeMastNodeData);
+            newNode.getNodeData().addReference(nodeDataReference);
+
+            newNodeMastNodeData.setT2Node(currentNode);
+//            newNode.setLink(currentNode);
+
+            // add reference to si node
+            getMastNodeDataFromNode(currentNode).setSiNode(newNode);
+
             newSubtreeNodes[i] = newNode;
         }
         for (int i = 0; i < subtreeNodes.length; i++) {
@@ -100,6 +114,10 @@ public class SubtreeProcessor {
             }
         }
         return result;
+    }
+
+    private MASTNodeData getMastNodeDataFromNode(PhylogenyNode currentNode) {
+        return ((NodeDataReference)currentNode.getNodeData().getReference()).getMastNodeData();
     }
 
     private void updateLeftRightIndexes(Stack<Integer>[] nodeBuckets, IntegerPair[] leftRightIndexes) {

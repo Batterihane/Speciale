@@ -9,15 +9,11 @@ import Utilities.SubtreeProcessor;
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
 import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
-/**
- * Created by Thomas on 18-02-2016.
- */
 public class MAST {
 
     public static void main(String[] args) {
@@ -48,7 +44,14 @@ public class MAST {
         // simple base case
         if(numberOfLeaves == 1){
             getMASTNodeDataFromNode(tree2.getRoot()).setSubtreeMASTSize(1);
-            return copyTree(tree1);
+            return tree1; //TODO: copy tree?
+        }
+        // base case for test
+        if(numberOfLeaves == 2){
+            getMASTNodeDataFromNode(tree2.getRoot().getChildNode1()).setSubtreeMASTSize(1);
+            getMASTNodeDataFromNode(tree2.getRoot().getChildNode2()).setSubtreeMASTSize(1);
+            getMASTNodeDataFromNode(tree2.getRoot()).setSubtreeMASTSize(2);
+            return tree1;
         }
 
         setTwins(tree1, tree2);
@@ -75,6 +78,8 @@ public class MAST {
 
     // Initial setup
     private void addNodeDataReferences(Phylogeny tree){
+        if(tree.getRoot().getNodeData().getReferences() != null) return; // Node data has already been added.
+
         PhylogenyNodeIterator iterator = tree.iteratorPostorder();
         while (iterator.hasNext()){
             PhylogenyNode currentNode = iterator.next();
@@ -89,8 +94,11 @@ public class MAST {
         while (iterator.hasNext()) {
             PhylogenyNode currentNode = iterator.next();
             if (currentNode.isExternal()) {
-                int name = Integer.parseInt(currentNode.getName());
                 MASTNodeData mastNodeData = getMASTNodeDataFromNode(currentNode);
+
+                if(mastNodeData.getTwin() != null) return; // Twins have already been set.
+
+                int name = Integer.parseInt(currentNode.getName());
                 PhylogenyNode twin = tree2Leaves.get(name);
                 mastNodeData.setTwin(twin);
 
@@ -283,8 +291,19 @@ public class MAST {
 
     // Induce Si subtrees
     public List<Phylogeny> induceSubtrees(List<PhylogenyNode> t1CentroidPath, Phylogeny tree1, Phylogeny tree2){
-        int i = tree1.getNumberOfExternalNodes();
+        int numberOfExternalNodes = tree1.getNumberOfExternalNodes();
         updateMiNumbers(t1CentroidPath);
+
+        // Set T2 leaf numbers
+        PhylogenyNodeIterator tree2Iterator = tree2.iteratorPreorder();
+        int i = 0;
+        while (tree2Iterator.hasNext()){
+            PhylogenyNode currentNode = tree2Iterator.next();
+            if(currentNode.isExternal()){
+                getMASTNodeDataFromNode(currentNode).setLeafNumber(i);
+                i++;
+            }
+        }
 
         PhylogenyNode[] sortedTree1Leaves = sortTree1Leaves(tree1);
 
@@ -304,7 +323,7 @@ public class MAST {
             if(siLeaves == null) continue;
             result.add(subtreeProcessor.induceSubtree(siLeaves));
         }
-        System.out.println((int)((System.nanoTime() - time)/(i*(Math.log(i)/Math.log(2)))));
+        System.out.println((int)((System.nanoTime() - time)/(numberOfExternalNodes*(Math.log(numberOfExternalNodes)/Math.log(2)))));
         return result;
     }
     public void updateMiNumbers(List<PhylogenyNode> centroidPath){
@@ -334,8 +353,9 @@ public class MAST {
         while (iterator.hasNext()){
             PhylogenyNode currentNode = iterator.next();
             if(currentNode.isExternal()){
-                int name = Integer.parseInt(currentNode.getName());
-                sortedTree1Leaves[name] = currentNode;
+//                int name = Integer.parseInt(currentNode.getName());
+                int leafNumber = getMASTNodeDataFromNode(getMASTNodeDataFromNode(currentNode).getTwin()).getLeafNumber();
+                sortedTree1Leaves[leafNumber] = currentNode;
             }
         }
         return sortedTree1Leaves;
@@ -389,11 +409,51 @@ public class MAST {
             PhylogenyNode miRoot = (tree1Decomposition.get(i+1).getId() == firstChild.getId()) ? secondChild : firstChild;
             Phylogeny mi = new Phylogeny();
             mi.setRoot(miRoot);
-            mi = copyTree(mi);
+            mi = copyMiTreeAndSetTwins(mi);
 
             Phylogeny si = siSubtrees.get(i);
             getMAST(mi, si);
         }
+    }
+    private Phylogeny copyMiTreeAndSetTwins(Phylogeny tree){
+        Phylogeny result = new Phylogeny();
+
+        Stack<PhylogenyNodePair> remainingNodes = new Stack<>();
+        PhylogenyNode root = tree.getRoot();
+        PhylogenyNode newRoot = new PhylogenyNode();
+        PhylogenyNodePair rootPair = new PhylogenyNodePair(root, newRoot);
+        remainingNodes.push(rootPair);
+
+        while(!remainingNodes.isEmpty()){
+            PhylogenyNodePair nodePair = remainingNodes.pop();
+            PhylogenyNode oldNode = nodePair.firstNode;
+            PhylogenyNode newNode = nodePair.secondNode;
+
+            // Add node data
+            NodeDataReference nodeDataReference = new NodeDataReference();
+            MASTNodeData newNodeMastNodeData = new MASTNodeData();
+            nodeDataReference.setMastNodeData(newNodeMastNodeData);
+            newNode.getNodeData().addReference(nodeDataReference);
+
+            if(oldNode.isExternal()){
+                newNode.setName(oldNode.getName());
+
+                // set twins
+                PhylogenyNode siTwin = getMASTNodeDataFromNode(getMASTNodeDataFromNode(oldNode).getTwin()).getSiNode();
+                newNodeMastNodeData.setTwin(siTwin);
+                getMASTNodeDataFromNode(siTwin).setTwin(newNode);
+
+                continue;
+            }
+            PhylogenyNode newChild1 = new PhylogenyNode();
+            PhylogenyNode newChild2 = new PhylogenyNode();
+            newNode.setChild1(newChild1);
+            newNode.setChild2(newChild2);
+            remainingNodes.push(new PhylogenyNodePair(oldNode.getChildNode1(), newChild1));
+            remainingNodes.push(new PhylogenyNodePair(oldNode.getChildNode2(), newChild2));
+        }
+        result.setRoot(newRoot);
+        return result;
     }
 
     // Create graphs
@@ -432,7 +492,7 @@ public class MAST {
                 PhylogenyNode startOfSiParentCentroidPath;
                 PhylogenyNode currentSiParentT2Node;
                 if(currentSiParent != null){
-                    currentSiParentT2Node = currentSiParent.getLink();
+                    currentSiParentT2Node = getMASTNodeDataFromNode(currentSiParent).getT2Node();
                     startOfSiParentCentroidPath = currentSiParentT2Node.getLink();
                 }
                 else {
@@ -440,7 +500,7 @@ public class MAST {
                     currentSiParentT2Node = null;
                 }
 
-                PhylogenyNode currentT2Node = currentSiNode.getLink();
+                PhylogenyNode currentT2Node = getMASTNodeDataFromNode(currentSiNode).getT2Node();
 
                 // walk up through tree2
                 while (currentT2Node != null){
@@ -464,11 +524,11 @@ public class MAST {
 
         // add u_p edges to graphs
         PhylogenyNode u_p = tree1Decomposition.get(tree1Decomposition.size()-1);
-        findAndAddGraphEdgesFromLeaf(u_p);
+        findAndAddGraphEdgesFromLeaf(u_p, tree1Decomposition, tree2Decomposition);
 
         return graphs;
     }
-    private void findAndAddGraphEdgesFromLeaf(PhylogenyNode leaf) {
+    private void findAndAddGraphEdgesFromLeaf(PhylogenyNode leaf, List<PhylogenyNode> tree1Decomposition, List<List<PhylogenyNode>> tree2Decomposition) {
         MASTNodeData mastNodeData = getMASTNodeDataFromNode(leaf);
         PhylogenyNode twin = mastNodeData.getTwin();
         PhylogenyNode currentT2Node = twin;
@@ -502,7 +562,7 @@ public class MAST {
 
             // White weight
             int whiteWeight = -1;
-            if(mapNode.getLink() != rightNode){ // map(i,j) != v_j
+            if(getMASTNodeDataFromNode(mapNode).getT2Node() != rightNode){ // map(i,j) != v_j
                 whiteWeight = getMASTNodeDataFromNode(mapNode).getSubtreeMASTSize();
             }
             else {
@@ -522,50 +582,23 @@ public class MAST {
                 PhylogenyNodeIterator n_jIterator = n_j.iteratorPreorder();
                 while (n_jIterator.hasNext()){
                     PhylogenyNode currentNode = n_jIterator.next();
-                    if(currentNode == mapNodeFirstChild.getLink()){
+                    if(currentNode == getMASTNodeDataFromNode(mapNodeFirstChild).getT2Node()){
                         whiteWeight = getMASTNodeDataFromNode(mapNodeFirstChild).getSubtreeMASTSize();
                         break;
                     }
-                    if(currentNode == mapNodeSecondChild.getLink()){
+                    if(currentNode == getMASTNodeDataFromNode(mapNodeSecondChild).getT2Node()){
                         whiteWeight = getMASTNodeDataFromNode(mapNodeSecondChild).getSubtreeMASTSize();
                         break;
                     }
                 }
-                edge.setWhiteWeight(whiteWeight);
             }
+            edge.setWhiteWeight(whiteWeight);
         }
     }
 
     // Helper methods
     private MASTNodeData getMASTNodeDataFromNode(PhylogenyNode node){
         return ((NodeDataReference) node.getNodeData().getReference()).getMastNodeData();
-    }
-    private Phylogeny copyTree(Phylogeny tree){
-        Phylogeny result = new Phylogeny();
-
-        Stack<PhylogenyNodePair> remainingNodes = new Stack<>();
-        PhylogenyNode root = tree.getRoot();
-        PhylogenyNode newRoot = new PhylogenyNode();
-        PhylogenyNodePair rootPair = new PhylogenyNodePair(root, newRoot);
-        remainingNodes.push(rootPair);
-
-        while(!remainingNodes.isEmpty()){
-            PhylogenyNodePair nodePair = remainingNodes.pop();
-            PhylogenyNode oldNode = nodePair.firstNode;
-            PhylogenyNode newNode = nodePair.secondNode;
-            if(oldNode.isExternal()){
-                newNode.setName(oldNode.getName());
-                continue;
-            }
-            PhylogenyNode newChild1 = new PhylogenyNode();
-            PhylogenyNode newChild2 = new PhylogenyNode();
-            newNode.setChild1(newChild1);
-            newNode.setChild2(newChild2);
-            remainingNodes.push(new PhylogenyNodePair(oldNode.getChildNode1(), newChild1));
-            remainingNodes.push(new PhylogenyNodePair(oldNode.getChildNode2(), newChild2));
-        }
-        result.setRoot(newRoot);
-        return result;
     }
     private class PhylogenyNodePair {
         private PhylogenyNode firstNode;
