@@ -463,7 +463,7 @@ public class MAST {
         for (int i = graphs.length-1; i >= 0; i--) {
             Graph graph = graphs[i];
             setGraphEdgesWeights(graph, masts);
-            // computeMAST(graph, masts);
+            // TODO: computeMAST(graph, masts);
         }
         return graphs;
     }
@@ -562,7 +562,7 @@ public class MAST {
             PhylogenyNode rightNode = edge.getRight();
             PhylogenyNode mapNode = edge.getMapNode();
 
-            if(leftNode.isExternal() || mapNode.isExternal()){
+            if(leftNode.isExternal() || rightNode.isExternal()){
                 edge.setWhiteWeight(1);
                 edge.setGreenWeight(1);
                 edge.setRedWeight(1);
@@ -589,16 +589,20 @@ public class MAST {
             PhylogenyNode mapNodeFirstChild = mapNode.getChildNode1();
             PhylogenyNode mapNodeSecondChild = mapNode.getChildNode2();
             PhylogenyNode rightNodeFirstChild = rightNode.getChildNode1();
-            PhylogenyNode rightNodeSecondChild = rightNode.getChildNode2();
+//            PhylogenyNode rightNodeSecondChild = rightNode.getChildNode2();
 
-            Phylogeny n_j = new Phylogeny();
+//            Phylogeny n_j = new Phylogeny();
 
-            // child is not on a path or it is the first node in its path, i.e. root of N_j
-            if(rightNodeFirstChild.getLink() == null || rightNodeFirstChild.getLink() == rightNodeFirstChild){
-                n_j.setRoot(rightNodeFirstChild);
+            // child is not on the same path as rightNode, i.e. root of N_j
+            if(rightNodeFirstChild.getLink() != rightNode.getLink()){
+                whiteWeight = getMASTNodeDataFromNode(mapNodeFirstChild).getSubtreeMASTSize();
+//                n_j.setRoot(rightNodeFirstChild);
             }
-            else n_j.setRoot(rightNodeSecondChild);
-
+            else {
+                whiteWeight = getMASTNodeDataFromNode(mapNodeSecondChild).getSubtreeMASTSize();
+//                n_j.setRoot(rightNodeSecondChild);
+            }
+            /*
             PhylogenyNodeIterator n_jIterator = n_j.iteratorPreorder();
             while (n_jIterator.hasNext()){
                 PhylogenyNode currentNode = n_jIterator.next();
@@ -611,7 +615,9 @@ public class MAST {
                     break;
                 }
             }
+            */
         }
+
         return whiteWeight;
     }
     private int computeRedWeight(PhylogenyNode leftNode, PhylogenyNode rightNode, Phylogeny[][] masts) {
@@ -625,7 +631,8 @@ public class MAST {
         if(n_jRoot.isExternal()) return 1;
         int leftNodePathNumber = getMASTNodeDataFromNode(leftNode).getPathNumber();
         int n_jRootPathNumber = getMASTNodeDataFromNode(n_jRoot).getPathNumber();
-        return masts[leftNodePathNumber][n_jRootPathNumber].getRoot().getNumberOfExternalNodes();
+        // TODO: return masts[leftNodePathNumber][n_jRootPathNumber].getRoot().getNumberOfExternalNodes();
+        return 1;
     }
 
     // Helper methods
