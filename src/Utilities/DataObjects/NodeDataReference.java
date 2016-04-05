@@ -9,6 +9,7 @@ public class NodeDataReference extends Reference {
     private LCANodeData lcaNodeData;
     private CompleteBinaryTreeLCANodeData completeBinaryTreeLCANodeData;
     private MASTNodeData mastNodeData;
+    private GraphNodeData graphNodeData;
 
     public NodeDataReference() {
         super("");
@@ -22,7 +23,6 @@ public class NodeDataReference extends Reference {
     public void setLcaNodeData(LCANodeData lcaNodeData) {
         this.lcaNodeData = lcaNodeData;
     }
-
 
     public CompleteBinaryTreeLCANodeData getCompleteBinaryTreeLCANodeData() {
         return completeBinaryTreeLCANodeData;
@@ -38,5 +38,13 @@ public class NodeDataReference extends Reference {
 
     public void setMastNodeData(MASTNodeData mastNodeData) {
         this.mastNodeData = mastNodeData;
+    }
+
+    public GraphNodeData getGraphNodeData() {
+        return graphNodeData;
+    }
+
+    public void setGraphNodeData(GraphNodeData graphNodeData) {
+        this.graphNodeData = graphNodeData;
     }
 }

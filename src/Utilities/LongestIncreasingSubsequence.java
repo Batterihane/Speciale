@@ -7,6 +7,7 @@ import java.util.List;
  * Created by Thomas on 23-03-2016.
  */
 public class LongestIncreasingSubsequence {
+    private int[] lisLengths;
 
     public static void main(String[] args) {
         int[] a = new int[20];
@@ -30,7 +31,13 @@ public class LongestIncreasingSubsequence {
         a[17] = 0;
         a[18] = 3;
         a[19] = 8;
-        for (int i : findLISModified(a)){
+        LongestIncreasingSubsequence lis = new LongestIncreasingSubsequence();
+        for (int i : lis.findLISModified(a)){
+            System.out.print(i + " ");
+        }
+
+        System.out.println();
+        for (int i : lis.getLisLengths()){
             System.out.print(i + " ");
         }
     }
@@ -90,10 +97,10 @@ public class LongestIncreasingSubsequence {
         return low;  // key not found.
     }
 
-
-    public static int[] findLISModified(int[] numbers) {
+    public int[] findLISModified(int[] numbers) {
         int[] parents = new int[numbers.length];
         int[] beforeParents = new int[numbers.length]; // necessary for when last element is moved
+        lisLengths = new int[numbers.length];
         List<Integer> increasingSequence= new ArrayList<>();
         List<Integer> increasingSequenceIndices = new ArrayList<>();
         increasingSequence.add(numbers[0]);
@@ -101,6 +108,8 @@ public class LongestIncreasingSubsequence {
         increasingSequence.add(numbers[1]);
         increasingSequenceIndices.add(1);
         parents[1] = 0;
+        lisLengths[0] = 1;
+        lisLengths[1] = 2;
 
         for (int i = 2; i < numbers.length; i++) {
             int currentNumber = numbers[i];
@@ -146,6 +155,7 @@ public class LongestIncreasingSubsequence {
                     parents[i] = increasingSequenceIndices.get(currentNumberIndex - 1);
                 else parents[i] = -1;
             }
+            lisLengths[i] = increasingSequence.size();
         }
 
         int resultSize = increasingSequence.size();
@@ -158,5 +168,9 @@ public class LongestIncreasingSubsequence {
         }
 
         return result;
+    }
+
+    public int[] getLisLengths(){
+        return lisLengths;
     }
 }

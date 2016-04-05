@@ -13,16 +13,28 @@ public class WeightBalancedBinarySearchTree {
     private int numberOfCallsToFindIndexOfCut = 0;
 
     public static void main(String[] args) {
-        double[] a = new double[5];
+        double[] a = new double[18];
         a[0] = 1;
-        a[1] = 3;
-        a[2] = 2;
-
-        a[3] = 3;
-        a[4] = 3;
+        a[1] = 1;
+        a[2] = 1;
+        a[3] = 1;
+        a[4] = 1;
+        a[5] = 1;
+        a[6] = 1;
+        a[7] = 1;
+        a[8] = 1;
+        a[9] = 1;
+        a[10] = 1;
+        a[11] = 1;
+        a[12] = 1;
+        a[13] = 1;
+        a[14] = 1;
+        a[15] = 1;
+        a[16] = 1;
+        a[17] = 1;
 
         WeightBalancedBinarySearchTree weightBalancedBinarySearchTree = new WeightBalancedBinarySearchTree();
-        Phylogeny tree = weightBalancedBinarySearchTree.constructTree(a, 0, 4);
+        Phylogeny tree = weightBalancedBinarySearchTree.constructTree(a);
         Archaeopteryx.createApplication(tree);
     }
 
@@ -54,13 +66,13 @@ public class WeightBalancedBinarySearchTree {
         System.out.println(weightBalancedBinarySearchTree.findRootIndexBinarySearch(l, r, 0, 4));
     }
 
-    public Phylogeny constructTree(double[] weights, int from, int to){
+    public Phylogeny constructTree(double[] weights){
         Phylogeny tree = new Phylogeny();
         double[] l = computeLFromWeights(weights);
         double[] r = computeRFromWeights(weights);
 
         Stack<StackItem> stack = new Stack<>();
-        stack.push(new StackItem(from, to, null, true));
+        stack.push(new StackItem(0, weights.length-1, null, true));
 
         while(!stack.isEmpty()){
             StackItem stackItem = stack.pop();
@@ -78,7 +90,10 @@ public class WeightBalancedBinarySearchTree {
                 child2.setName(j + ": " + weights[j]);
                 newNode.setChild1(child1);
                 newNode.setChild2(child2);
-                if(isLeftChild) parentNode.setChild1(newNode);
+                if(parentNode == null){
+                    tree.setRoot(newNode);
+                }
+                else if(isLeftChild) parentNode.setChild1(newNode);
                 else parentNode.setChild2(newNode);
                 continue;
             }
@@ -148,11 +163,13 @@ public class WeightBalancedBinarySearchTree {
         if(j == i + 1 || j == i) return j;
 
         int middleIndex = i + (j - i + 1) / 2;
-        if(l[middleIndex] == r[middleIndex]) return middleIndex;
+        double lMiddleIndex = l[middleIndex] - l[i];
+        double rMiddleIndex = r[middleIndex] - r[j + 1];
+        if(lMiddleIndex == rMiddleIndex) return middleIndex;
 
         int from,to;
         boolean fromLeft;
-        if(l[middleIndex] < r[middleIndex]){
+        if(lMiddleIndex < rMiddleIndex){
             from = middleIndex + 1;
             to = j;
             fromLeft = false;
@@ -176,10 +193,12 @@ public class WeightBalancedBinarySearchTree {
                 break;
             }
 
-            if(l[kIndex] == r[kIndex]) return kIndex;
+            double lKIndex = l[kIndex] - l[i];
+            double rKIndex = r[kIndex] - r[j+1];
+            if(lKIndex == rKIndex) return kIndex;
 
-            if(fromLeft && l[kIndex] > r[kIndex]) break;
-            if(!fromLeft && l[kIndex] < r[kIndex]) break;
+            if(fromLeft && lKIndex > rKIndex) break;
+            if(!fromLeft && lKIndex < rKIndex) break;
 
             k = (k + 1)*2 - 1;
             previousKIndex = kIndex;

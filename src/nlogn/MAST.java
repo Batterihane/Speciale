@@ -1,11 +1,11 @@
 package nlogn;
 
+import Utilities.*;
+import Utilities.DataObjects.GraphNodeData;
 import Utilities.DataObjects.MASTNodeData;
 import Utilities.DataObjects.NodeDataReference;
-import Utilities.ForesterNewickParser;
-import Utilities.LongestIncreasingSubsequence;
-import Utilities.PhylogenyGenerator;
-import Utilities.SubtreeProcessor;
+import org.forester.archaeopteryx.Archaeopteryx;
+import org.forester.archaeopteryx.MainFrame;
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
 import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
@@ -20,8 +20,8 @@ public class MAST {
         ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
 //        Phylogeny tree = foresterNewickParser.parseNewickFile("treess\\Tree2.new");
 
-        Phylogeny tree1 = PhylogenyGenerator.generateTree(5);
-        Phylogeny tree2 = PhylogenyGenerator.generateTree(5);
+        Phylogeny tree1 = PhylogenyGenerator.generateTree(11);
+        Phylogeny tree2 = PhylogenyGenerator.generateTree(11);
         PhylogenyGenerator.renameTreeLeavesLeftToRight(tree2);
         MAST mast = new MAST();
 //        List<PhylogenyNode> firstDecomposition = mast.computeFirstDecomposition(tree);
@@ -58,7 +58,7 @@ public class MAST {
         List<PhylogenyNode> tree1Decomposition = computeFirstDecomposition(tree1);
         List<List<PhylogenyNode>> tree2Decomposition = computeSecondDecomposition(tree2);
 
-        // old base case
+        // lis base case
 //        if(tree1Decomposition.size() == numberOfLeaves && tree2Decomposition.size() == 1){
 //            return baseCaseModified(tree2, tree1);
 //        }
@@ -67,7 +67,7 @@ public class MAST {
 
         computeMiSiMASTs(tree1Decomposition, siSubtrees);
 
-        createGraphs(tree1Decomposition, tree2Decomposition, siSubtrees);
+        createGraphsAndComputeMASTs(tree1Decomposition, tree2Decomposition, siSubtrees);
 
 //        throw new NotImplementedException();
         return new Phylogeny();
@@ -107,8 +107,8 @@ public class MAST {
 
     // Base case
     private Phylogeny baseCase(Phylogeny tree1, Phylogeny tree2) {
-        PhylogenyNode[] tree1LeavesTopDown = getLeavesTopDownAndSetNumbers(tree1);
-        PhylogenyNode[] tree2LeavesTopDown = getLeavesTopDownAndSetNumbers(tree2);
+        PhylogenyNode[] tree1LeavesTopDown = getLeavesTopDown(tree1);
+        PhylogenyNode[] tree2LeavesTopDown = getLeavesTopDown(tree2);
 
         // set LIS numbers
         for (int i = 0; i < tree1LeavesTopDown.length; i++) {
@@ -159,27 +159,43 @@ public class MAST {
         return tree;
     }
     private Phylogeny baseCaseModified(Phylogeny tree1, Phylogeny tree2) {
-        PhylogenyNode[] tree1LeavesTopDown = getLeavesTopDownAndSetNumbers(tree1);
-        PhylogenyNode[] tree2LeavesTopDown = getLeavesTopDownAndSetNumbers(tree2);
+        PhylogenyNode[] tree1LeavesBottomUp = getLeavesBottomUp(tree1);
+        PhylogenyNode[] tree2LeavesBottomUp = getLeavesBottomUp(tree2);
 
         // set LIS numbers
-        for (int i = 0; i < tree1LeavesTopDown.length; i++) {
-            PhylogenyNode currentNode = tree1LeavesTopDown[i];
+        for (int i = 0; i < tree1LeavesBottomUp.length; i++) {
+            PhylogenyNode currentNode = tree1LeavesBottomUp[i];
             MASTNodeData mastNodeData = getMASTNodeDataFromNode(currentNode);
             mastNodeData.setLisNumber(i);
             MASTNodeData twinMastNodeData = getMASTNodeDataFromNode(mastNodeData.getTwin());
             twinMastNodeData.setLisNumber(i);
         }
 
-        int[] numbers = getLisNumbersFromLeaves(tree2LeavesTopDown);
-        int[] lis = LongestIncreasingSubsequence.findLISModified(numbers);
+        int[] numbers = getLisNumbersFromLeaves(tree2LeavesBottomUp);
+        LongestIncreasingSubsequence lisFinder = new LongestIncreasingSubsequence();
+        int[] lis = lisFinder.findLISModified(numbers);
+        int[] lisLengths = lisFinder.getLisLengths();
+
+        PhylogenyNodeIterator t2Iterator = tree2.iteratorLevelOrder();
+        int j = numbers.length - 1;
+        while (t2Iterator.hasNext()){
+            PhylogenyNode currentNode = t2Iterator.next();
+            MASTNodeData currentNodeMastNodeData = getMASTNodeDataFromNode(currentNode);
+            if(currentNode.isExternal()){
+                currentNodeMastNodeData.setSubtreeMASTSize(1);
+            }
+            else {
+                currentNodeMastNodeData.setSubtreeMASTSize(lisLengths[j]);
+                j--;
+            }
+        }
 
         int i = 0;
         Phylogeny tree = new Phylogeny();
         PhylogenyNode currentBottomMostNode = new PhylogenyNode();
         tree.setRoot(currentBottomMostNode);
 
-        for (PhylogenyNode currentLeaf : tree2LeavesTopDown){
+        for (PhylogenyNode currentLeaf : tree2LeavesBottomUp){
             int currentLeafLisNumber = getMASTNodeDataFromNode(currentLeaf).getLisNumber();
             if(currentLeafLisNumber == lis[i]){
                 if(i == lis.length-1){
@@ -207,6 +223,8 @@ public class MAST {
             MASTNodeData mastNodeData = getMASTNodeDataFromNode(currentLeaf);
             numbers[i] = mastNodeData.getLisNumber();
         }
+
+        //TODO: remove all this
         PhylogenyNode secondLastLeaf = tree2LeavesTopDown[tree2LeavesTopDown.length-2];
         PhylogenyNode lastLeaf = tree2LeavesTopDown[tree2LeavesTopDown.length-1];
         int secondLastLisNumber = getMASTNodeDataFromNode(secondLastLeaf).getLisNumber();
@@ -221,7 +239,7 @@ public class MAST {
         }
         return numbers;
     }
-    private PhylogenyNode[] getLeavesTopDownAndSetNumbers(Phylogeny tree) {
+    private PhylogenyNode[] getLeavesTopDown(Phylogeny tree) {
         int numberOfLeaves = tree.getRoot().getNumberOfExternalNodes();
         PhylogenyNode[] treeLeavesTopDown = new PhylogenyNode[numberOfLeaves];
         PhylogenyNodeIterator iteratorLevelOrder = tree.iteratorLevelOrder();
@@ -234,6 +252,20 @@ public class MAST {
             }
         }
         return treeLeavesTopDown;
+    }
+    private PhylogenyNode[] getLeavesBottomUp(Phylogeny tree) {
+        int numberOfLeaves = tree.getRoot().getNumberOfExternalNodes();
+        PhylogenyNode[] treeLeavesBottomUp = new PhylogenyNode[numberOfLeaves];
+        PhylogenyNodeIterator iteratorLevelOrder = tree.iteratorLevelOrder();
+        int i = numberOfLeaves-1;
+        while (iteratorLevelOrder.hasNext()){
+            PhylogenyNode currentNode = iteratorLevelOrder.next();
+            if(currentNode.isExternal()){
+                treeLeavesBottomUp[i] = currentNode;
+                i--;
+            }
+        }
+        return treeLeavesBottomUp;
     }
 
     // Decompositions
@@ -454,16 +486,16 @@ public class MAST {
     }
 
     // Create graphs
-    private Graph[] createGraphs(List<PhylogenyNode> tree1Decomposition, List<List<PhylogenyNode>> tree2Decomposition, List<Phylogeny> siSubtrees) {
+    private Graph[] createGraphsAndComputeMASTs(List<PhylogenyNode> tree1Decomposition, List<List<PhylogenyNode>> tree2Decomposition, List<Phylogeny> siSubtrees) {
         Graph[] graphs = findAndAddGraphEdges(tree1Decomposition, tree2Decomposition, siSubtrees);
         setPathNumbers(tree1Decomposition, tree2Decomposition);
 
-        // masts[i,j] = MAST(x,y) where x is the i'th node of pi and y is the j'th node of X
+        // masts[i,j] = MAST(T1(x),T2(y)) where x is the i'th node of pi and y is the j'th node of X
         Phylogeny[][] masts = new Phylogeny[tree1Decomposition.size()-1][tree2Decomposition.size()];
         for (int i = graphs.length-1; i >= 0; i--) {
             Graph graph = graphs[i];
             setGraphEdgesWeights(graph, masts);
-            // TODO: computeMAST(graph, masts);
+            computeMAST(graph, masts);
         }
         return graphs;
     }
@@ -633,6 +665,47 @@ public class MAST {
         int n_jRootPathNumber = getMASTNodeDataFromNode(n_jRoot).getPathNumber();
         // TODO: return masts[leftNodePathNumber][n_jRootPathNumber].getRoot().getNumberOfExternalNodes();
         return 1;
+    }
+
+    // Compute agreement matchings
+    private void computeMAST(Graph graph, Phylogeny[][] masts) {
+        List<PhylogenyNode> rightSet = graph.getRightSet();
+        double[] weights = setIndexNumbersAndGetWeights(graph, rightSet);
+        Phylogeny searchTree = new WeightBalancedBinarySearchTree().constructTree(weights);
+
+    }
+    private double[] setIndexNumbersAndGetWeights(Graph graph, List<PhylogenyNode> rightSet) {
+        double[] weights = new double[rightSet.size()];
+
+        // Set index numbers and weights
+        int rightSetSubtreeSize = rightSet.get(0).getNumberOfExternalNodes();
+        for (int j = 0; j < rightSet.size(); j++) {
+            PhylogenyNode currentNode = rightSet.get(j);
+            GraphNodeData graphNodeData = getGraphNodeData(currentNode);
+            graphNodeData.setIndex(j);
+
+            int nj;
+            if(currentNode.isExternal()){
+                nj = 1;
+            }
+            else {
+                PhylogenyNode firstChild = currentNode.getChildNode1();
+                PhylogenyNode secondChild = currentNode.getChildNode2();
+                if(firstChild == rightSet.get(j+1)){
+                    nj = secondChild.getNumberOfExternalNodes();
+                }
+                else nj = firstChild.getNumberOfExternalNodes();
+            }
+            if(graphNodeData.hasNonSingletonEdge()){
+                weights[j] = nj + (double)rightSetSubtreeSize/graph.getNsav();
+            }
+            else weights[j] = nj;
+
+        }
+        return weights;
+    }
+    private GraphNodeData getGraphNodeData(PhylogenyNode node){
+        return ((NodeDataReference) node.getNodeData().getReference()).getGraphNodeData();
     }
 
     // Helper methods
