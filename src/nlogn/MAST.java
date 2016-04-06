@@ -692,10 +692,11 @@ public class MAST {
                 currentSearchTreeNode = previousSearchTreeNode;
                 ancestors = previousAncestors;
 
-                while (getSearchTreeNodeData(currentSearchTreeNode).getIndex() < rightNodeIndex){
+                while (rightNodeIndex < getSearchTreeNodeData(currentSearchTreeNode).getLowIndex()){
                     currentSearchTreeNode = currentSearchTreeNode.getParent();
                     ancestors.remove(ancestors.size()-1);
                 }
+                currentSearchTreeNode = currentSearchTreeNode.getChildNode1();
             }
             else
                 currentSearchTreeNode = searchTree.getRoot();
@@ -708,7 +709,7 @@ public class MAST {
                 else currentSearchTreeNode = currentSearchTreeNode.getChildNode2();
             }
 
-
+            processWhiteEdge(ancestors, edge);
 
             previousLeftNode = leftNode;
             previousSearchTreeNode = currentSearchTreeNode;
@@ -753,7 +754,84 @@ public class MAST {
         return (SearchTreeNodeData) node.getNodeData().getReference();
     }
     private void processWhiteEdge(List<PhylogenyNode> ancestors, GraphEdge edge){
+        List<PhylogenyNode> rfringe = getFringe(ancestors, false);
 
+        MatchingWithWhiteEdge maxM;
+        int maxMWeight = 0;
+        ProperCrossing maxX;
+        int maxXWeight = 0;
+        for (PhylogenyNode currentNode : rfringe){
+            SearchTreeNodeData nodeData = getSearchTreeNodeData(currentNode);
+            MatchingWithWhiteEdge m = nodeData.getM();
+            if(m != null){
+                int mWeight = m.getWeight();
+                if(mWeight > maxMWeight){
+                    maxM = m;
+                    maxMWeight = mWeight;
+                }
+            }
+
+            ProperCrossing x = nodeData.getX();
+            if(x != null){
+                int xWeight = x.getWeight();
+                if(xWeight > maxXWeight){
+                    maxX = x;
+                    maxXWeight = xWeight;
+                }
+            }
+        }
+
+        ProperCrossing maxGR;
+        int maxGRWeight = 0;
+        int currentMaxAncestorGWeight = 0;
+        GraphEdge currentMaxAncestorG = null;
+        for (int i = 0; i < ancestors.size()-1; i++) {
+            PhylogenyNode currentAncestor = ancestors.get(i);
+            SearchTreeNodeData nodeData = getSearchTreeNodeData(currentAncestor);
+            GraphEdge ancestorG = nodeData.getG();
+            if(ancestorG != null){
+                int ancestorGWeight = ancestorG.getGreenWeight();
+                if(ancestorGWeight > currentMaxAncestorGWeight){
+                    currentMaxAncestorGWeight = ancestorGWeight;
+                    currentMaxAncestorG = ancestorG;
+                }
+            }
+            PhylogenyNode child = currentAncestor.getChildNode2();
+            if(child != ancestors.get(i+1)){
+                SearchTreeNodeData childData = getSearchTreeNodeData(child);
+                GraphEdge r = childData.getR();
+                if(r == null) continue;
+
+                GraphEdge g = childData.getG();
+                GraphEdge maxG;
+                int maxGWeight;
+                if(g == null || g.getGreenWeight() <= currentMaxAncestorGWeight){
+                    if(currentMaxAncestorG == null) continue;
+                    maxG = currentMaxAncestorG;
+                    maxGWeight = currentMaxAncestorGWeight;
+                }
+                else {
+                    maxG = g;
+                    maxGWeight = g.getGreenWeight();
+                }
+
+                int gRWeight = maxGWeight + r.getRedWeight();
+                if(gRWeight > maxGRWeight){
+                    maxGRWeight = gRWeight;
+                    maxGR = new ProperCrossing(maxG, r);
+                }
+            }
+        }
+    }
+    private List<PhylogenyNode> getFringe(List<PhylogenyNode> ancestors, boolean left) {
+        List<PhylogenyNode> fringe = new ArrayList<>();
+        for (int i = 0; i < ancestors.size(); i++) {
+            PhylogenyNode currentNode = ancestors.get(i);
+            if(currentNode.isExternal()) break;
+            PhylogenyNode child = left ? currentNode.getChildNode1() : currentNode.getChildNode2();
+            if(child != ancestors.get(i+1)) fringe.add(child);
+        }
+        return fringe;
     }
 
     // Helper methods

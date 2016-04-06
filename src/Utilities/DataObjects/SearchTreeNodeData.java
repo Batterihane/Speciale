@@ -1,6 +1,8 @@
 package Utilities.DataObjects;
 
 import nlogn.GraphEdge;
+import nlogn.MatchingWithWhiteEdge;
+import nlogn.ProperCrossing;
 import org.forester.phylogeny.data.Reference;
 
 import java.util.List;
@@ -13,7 +15,7 @@ public class SearchTreeNodeData extends Reference {
     private int lowIndex; // lowest index in subtree
     private GraphEdge g;
     private ProperCrossing x;
-    private List<GraphEdge> m;
+    private MatchingWithWhiteEdge m;
     private ProperCrossing y;
     private GraphEdge r;
 
@@ -33,11 +35,11 @@ public class SearchTreeNodeData extends Reference {
         this.x = x;
     }
 
-    public List<GraphEdge> getM() {
+    public MatchingWithWhiteEdge getM() {
         return m;
     }
 
-    public void setM(List<GraphEdge> m) {
+    public void setM(MatchingWithWhiteEdge m) {
         this.m = m;
     }
 
@@ -69,23 +71,5 @@ public class SearchTreeNodeData extends Reference {
         super("");
         this.index = index;
         this.lowIndex = lowIndex;
-    }
-
-    private class ProperCrossing {
-        private GraphEdge greenEdge;
-        private GraphEdge redEdge;
-
-        public ProperCrossing(GraphEdge greenEdge, GraphEdge redEdge) {
-            this.greenEdge = greenEdge;
-            this.redEdge = redEdge;
-        }
-
-        public GraphEdge getGreenEdge() {
-            return greenEdge;
-        }
-
-        public GraphEdge getRedEdge() {
-            return redEdge;
-        }
     }
 }
