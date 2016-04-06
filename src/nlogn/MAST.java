@@ -4,6 +4,7 @@ import Utilities.*;
 import Utilities.DataObjects.GraphNodeData;
 import Utilities.DataObjects.MASTNodeData;
 import Utilities.DataObjects.NodeDataReference;
+import Utilities.DataObjects.SearchTreeNodeData;
 import org.forester.archaeopteryx.Archaeopteryx;
 import org.forester.archaeopteryx.MainFrame;
 import org.forester.phylogeny.Phylogeny;
@@ -672,7 +673,48 @@ public class MAST {
         List<PhylogenyNode> rightSet = graph.getRightSet();
         double[] weights = setIndexNumbersAndGetWeights(graph, rightSet);
         Phylogeny searchTree = new WeightBalancedBinarySearchTree().constructTree(weights);
+        MainFrame application = Archaeopteryx.createApplication(searchTree);
 
+        List<GraphEdge> edges = graph.getEdges();
+        PhylogenyNode previousLeftNode = new PhylogenyNode();
+        PhylogenyNode previousSearchTreeNode = new PhylogenyNode();
+        List<PhylogenyNode> previousAncestors = new ArrayList<>();
+        for (int i = edges.size()-1; i >= 0; i--) {
+            GraphEdge edge = edges.get(i);
+            PhylogenyNode leftNode = edge.getLeft();
+            PhylogenyNode rightNode = edge.getRight();
+            int rightNodeIndex = getGraphNodeData(rightNode).getIndex();
+
+            // find node in search tree and get ancestors
+            List<PhylogenyNode> ancestors = new ArrayList<>();
+            PhylogenyNode currentSearchTreeNode;
+            if(leftNode == previousLeftNode) {
+                currentSearchTreeNode = previousSearchTreeNode;
+                ancestors = previousAncestors;
+
+                while (getSearchTreeNodeData(currentSearchTreeNode).getIndex() < rightNodeIndex){
+                    currentSearchTreeNode = currentSearchTreeNode.getParent();
+                    ancestors.remove(ancestors.size()-1);
+                }
+            }
+            else
+                currentSearchTreeNode = searchTree.getRoot();
+            while (true){
+                ancestors.add(currentSearchTreeNode);
+                if(currentSearchTreeNode.isExternal()) break;
+                SearchTreeNodeData searchTreeNodeData = getSearchTreeNodeData(currentSearchTreeNode);
+                if (rightNodeIndex < searchTreeNodeData.getIndex())
+                    currentSearchTreeNode = currentSearchTreeNode.getChildNode1();
+                else currentSearchTreeNode = currentSearchTreeNode.getChildNode2();
+            }
+
+
+
+            previousLeftNode = leftNode;
+            previousSearchTreeNode = currentSearchTreeNode;
+            previousAncestors = ancestors;
+        }
+        application.dispose();
     }
     private double[] setIndexNumbersAndGetWeights(Graph graph, List<PhylogenyNode> rightSet) {
         double[] weights = new double[rightSet.size()];
@@ -706,6 +748,12 @@ public class MAST {
     }
     private GraphNodeData getGraphNodeData(PhylogenyNode node){
         return ((NodeDataReference) node.getNodeData().getReference()).getGraphNodeData();
+    }
+    private SearchTreeNodeData getSearchTreeNodeData(PhylogenyNode node){
+        return (SearchTreeNodeData) node.getNodeData().getReference();
+    }
+    private void processWhiteEdge(List<PhylogenyNode> ancestors, GraphEdge edge){
+
     }
 
     // Helper methods
