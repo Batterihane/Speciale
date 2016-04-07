@@ -1,7 +1,7 @@
 package Utilities.DataObjects;
 
 import nlogn.GraphEdge;
-import nlogn.MatchingWithWhiteEdge;
+import nlogn.AgreementMatching;
 import nlogn.ProperCrossing;
 import org.forester.phylogeny.data.Reference;
 
@@ -15,7 +15,7 @@ public class SearchTreeNodeData extends Reference {
     private int lowIndex; // lowest index in subtree
     private GraphEdge g;
     private ProperCrossing x;
-    private MatchingWithWhiteEdge m;
+    private AgreementMatching m;
     private ProperCrossing y;
     private GraphEdge r;
 
@@ -35,11 +35,11 @@ public class SearchTreeNodeData extends Reference {
         this.x = x;
     }
 
-    public MatchingWithWhiteEdge getM() {
+    public AgreementMatching getM() {
         return m;
     }
 
-    public void setM(MatchingWithWhiteEdge m) {
+    public void setM(AgreementMatching m) {
         this.m = m;
     }
 

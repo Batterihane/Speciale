@@ -9,7 +9,9 @@ public class ProperCrossing {
         this.greenEdge = greenEdge;
         this.redEdge = redEdge;
 
-        weight = greenEdge.getGreenWeight() + redEdge.getRedWeight();
+        int greenWeight = greenEdge == null ? 0 : greenEdge.getGreenWeight();
+        int redWeight = redEdge == null ? 0 : redEdge.getRedWeight();
+        weight = greenWeight + redWeight;
     }
 
     public GraphEdge getGreenEdge() {
