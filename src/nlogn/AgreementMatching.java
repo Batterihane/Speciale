@@ -32,4 +32,14 @@ public class AgreementMatching {
         whiteEdges.add(whiteEdge);
         weight += whiteEdge.getWhiteWeight();
     }
+
+    @Override
+    public String toString() {
+        String result = "White edges: ";
+        for (GraphEdge whiteEdge : whiteEdges){
+            result += whiteEdge.toString() + ", ";
+        }
+        result += " Proper crossing: " + properCrossing.toString();
+        return result;
+    }
 }

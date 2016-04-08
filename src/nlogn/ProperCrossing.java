@@ -25,4 +25,11 @@ public class ProperCrossing {
     public int getWeight() {
         return weight;
     }
+
+    @Override
+    public String toString() {
+        String greenEdgeString = greenEdge == null ? "" : greenEdge.toString();
+        String redEdgeString = redEdge == null ? "" : redEdge.toString();
+        return greenEdgeString + ", " + redEdgeString;
+    }
 }

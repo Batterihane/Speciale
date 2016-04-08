@@ -65,4 +65,9 @@ public class GraphEdge {
     public void setMapNode(PhylogenyNode mapNode) {
         this.mapNode = mapNode;
     }
+
+    @Override
+    public String toString() {
+        return "(" + left.getId() + ", " + right.getName() + ")";
+    }
 }

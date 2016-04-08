@@ -670,8 +670,21 @@ public class MAST {
 
     // Compute agreement matchings
     private void computeMAST(Graph graph, Phylogeny[][] masts) {
+        System.out.println("\n\n\n");
+        List<PhylogenyNode> leftSet = graph.getLeftSet();
+        System.out.println("Left set:");
+        for (PhylogenyNode node : leftSet){
+            System.out.println(getMASTNodeDataFromNode(node).getPathNumber());
+        }
+
         List<PhylogenyNode> rightSet = graph.getRightSet();
         double[] weights = setIndexNumbersAndGetWeights(graph, rightSet);
+
+        System.out.println("Right set:");
+        for (PhylogenyNode node : rightSet){
+            System.out.println(getGraphNodeData(node).getIndex());
+        }
+
         Phylogeny searchTree = new WeightBalancedBinarySearchTree().constructTree(weights);
         MainFrame application = Archaeopteryx.createApplication(searchTree);
 
@@ -755,7 +768,8 @@ public class MAST {
     private SearchTreeNodeData getSearchTreeNodeData(PhylogenyNode node){
         return (SearchTreeNodeData) node.getNodeData().getReference();
     }
-    private void processWhiteEdge(List<PhylogenyNode> ancestors, GraphEdge edge){
+
+    private void processWhiteEdge(List<PhylogenyNode> ancestors, GraphEdge whiteEdge){
         List<PhylogenyNode> rfringe = getFringe(ancestors, false);
 
         // find largest m, largest x and largest y
@@ -798,21 +812,21 @@ public class MAST {
             }
         }
 
-        // find largest g,r crossing
-        ProperCrossing maxGR = findLargestGRCrossing(ancestors);
+        // find largest proper crossing which is not a single green edge
+        ProperCrossing maxGROrRedEdge = findLargestGRCrossingOrSingleRedEdge(ancestors);
 
 
-        // find largst agreement matching with 'edge' as topmost white edge
+        // find largst agreement matching with 'whiteEdge' as topmost white edge
         ProperCrossing largestProperCrossing = null;
         int largestProperCrossingWeight = 0;
         // largest proper crossing
-        int maxGRWeight = maxGR == null ? 0 : maxGR.getWeight();
+        int maxGRWeight = maxGROrRedEdge == null ? 0 : maxGROrRedEdge.getWeight();
         if(maxXWeight > maxGRWeight){
             largestProperCrossing = maxX;
             largestProperCrossingWeight = maxXWeight;
         }
         else {
-            largestProperCrossing = maxGR;
+            largestProperCrossing = maxGROrRedEdge;
             largestProperCrossingWeight = maxGRWeight;
         }
         if(maxYWeight > largestProperCrossingWeight){
@@ -823,13 +837,13 @@ public class MAST {
         AgreementMatching largestAgreementMatching;
         if(maxMWeight > largestProperCrossingWeight){
             largestAgreementMatching = maxM;
-            largestAgreementMatching.addWhiteEdge(edge);
+            largestAgreementMatching.addWhiteEdge(whiteEdge);
         }
         else if(largestProperCrossing == null) largestAgreementMatching = null;
         else {
             List<GraphEdge> whiteEdges = new ArrayList<>();
-            whiteEdges.add(edge);
-            int matchingWeight = largestProperCrossingWeight + edge.getWhiteWeight();
+            whiteEdges.add(whiteEdge);
+            int matchingWeight = largestProperCrossingWeight + whiteEdge.getWhiteWeight();
             largestAgreementMatching = new AgreementMatching(largestProperCrossing, whiteEdges, matchingWeight);
         }
 
@@ -838,7 +852,7 @@ public class MAST {
             updateM(ancestors, largestAgreementMatching);
         }
     }
-    private ProperCrossing findLargestGRCrossing(List<PhylogenyNode> ancestors) {
+    private ProperCrossing findLargestGRCrossingOrSingleRedEdge(List<PhylogenyNode> ancestors) {
         // TODO: exclude proper crossings whith topmost edge from u_i
         ProperCrossing maxGR = null;
         int maxGRWeight = 0;
@@ -864,8 +878,7 @@ public class MAST {
                 GraphEdge g = childData.getG();
                 GraphEdge maxG;
                 int maxGWeight;
-                if(g == null || g.getGreenWeight() <= currentMaxAncestorGWeight){
-                    if(currentMaxAncestorG == null) continue;
+                if(g == null || currentMaxAncestorGWeight > g.getGreenWeight()){
                     maxG = currentMaxAncestorG;
                     maxGWeight = currentMaxAncestorGWeight;
                 }
@@ -891,18 +904,19 @@ public class MAST {
             if(currentM == null || largestAgreementMatchingWeight > currentM.getWeight()) currentNodeData.setM(largestAgreementMatching);
         }
     }
-    private void processRedEdge(List<PhylogenyNode> ancestors, GraphEdge edge){
+
+    private void processRedEdge(List<PhylogenyNode> ancestors, GraphEdge redEdge){
         // update y(z) for z in ancestors
         // update g(y) for y in lfringe(z) and rfringe(z), z in ancestors
         // update r(z) for z in ancestors
-        updateYAndGAndR(ancestors, edge);
+        updateYAndGAndR(ancestors, redEdge);
 
         // remove g(z) for z in ancestors
         for (PhylogenyNode currentNode : ancestors){
             getSearchTreeNodeData(currentNode).setG(null);
         }
     }
-    private void updateYAndGAndR(List<PhylogenyNode> ancestors, GraphEdge edge) {
+    private void updateYAndGAndR(List<PhylogenyNode> ancestors, GraphEdge redEdge) {
         int currentMaxAncestorGWeight = 0;
         GraphEdge currentMaxAncestorG = null;
         for (int i = 0; i < ancestors.size(); i++) {
@@ -939,32 +953,54 @@ public class MAST {
 
             // update r
             GraphEdge r = currentNodeData.getR();
-            if(r == null || edge.getRedWeight() > r.getRedWeight())
-                currentNodeData.setR(edge);
+            if(r == null || redEdge.getRedWeight() > r.getRedWeight())
+                currentNodeData.setR(redEdge);
         }
     }
-    private void processGreenEdge(List<PhylogenyNode> ancestors, GraphEdge edge){
+
+    private void processGreenEdge(List<PhylogenyNode> ancestors, GraphEdge greenEdge){
         // update g(z) for z in lfringe
-        updateG(ancestors, edge);
+        updateG(ancestors, greenEdge);
 
         // update x(z) for z in ancestors
-        updateX(ancestors, edge);
+        updateX(ancestors, greenEdge);
     }
-    private void updateG(List<PhylogenyNode> ancestors, GraphEdge edge) {
-        List<PhylogenyNode> lfringe = getFringe(ancestors, true);
-        for (PhylogenyNode currentNode : lfringe){
-            SearchTreeNodeData currentNodeData = getSearchTreeNodeData(currentNode);
-            GraphEdge g = currentNodeData.getG();
-            if(g == null || edge.getGreenWeight() > g.getGreenWeight())
-                currentNodeData.setG(edge);
+    private void updateG(List<PhylogenyNode> ancestors, GraphEdge greenEdge) {
+        GraphEdge currentMaxAncestorG = null;
+        int currentMaxAncestorGWeight = 0;
+        for (int i = 0; i < ancestors.size()-1; i++) {
+            PhylogenyNode ancestorNode = ancestors.get(i);
+            SearchTreeNodeData ancestorNodeData = getSearchTreeNodeData(ancestorNode);
+            GraphEdge ancestorG = ancestorNodeData.getG();
+            if(ancestorG != null && ancestorG.getGreenWeight() > currentMaxAncestorGWeight){
+                currentMaxAncestorG = ancestorG;
+                currentMaxAncestorGWeight = ancestorG.getGreenWeight();
+            }
+            PhylogenyNode nodeToBeUpdated = ancestorNode.getChildNode1();
+            if(nodeToBeUpdated != ancestors.get(i+1)){
+                SearchTreeNodeData nodeToBeUpdatedData = getSearchTreeNodeData(nodeToBeUpdated);
+                GraphEdge nodeToBeUpdatedG = nodeToBeUpdatedData.getG();
+                GraphEdge currentMaxG;
+                if(nodeToBeUpdatedG != null && (currentMaxAncestorG == null || nodeToBeUpdatedG.getGreenWeight() > currentMaxAncestorGWeight)){
+                    currentMaxG = nodeToBeUpdatedG;
+                }
+                else currentMaxG = currentMaxAncestorG;
+                if(currentMaxG == null || greenEdge.getGreenWeight() > currentMaxG.getGreenWeight())
+                    nodeToBeUpdatedData.setG(greenEdge);
+                else nodeToBeUpdatedData.setG(currentMaxG);
+            }
+
+
+        }
+        for (PhylogenyNode currentNode : ancestors){
         }
     }
-    private void updateX(List<PhylogenyNode> ancestors, GraphEdge edge) {
+    private void updateX(List<PhylogenyNode> ancestors, GraphEdge greenEdge) {
         PhylogenyNode leaf = ancestors.get(ancestors.size() - 1);
         SearchTreeNodeData leafData = getSearchTreeNodeData(leaf);
         ProperCrossing leafX = leafData.getX();
-        if(leafX == null || edge.getGreenWeight() > leafX.getWeight())
-            leafData.setX(new ProperCrossing(edge, null));
+        if(leafX == null || greenEdge.getGreenWeight() > leafX.getWeight())
+            leafData.setX(new ProperCrossing(greenEdge, null));
 
         GraphEdge currentMaxLfringeR = null;
         int currentMaxLfringeRweight = 0;
@@ -981,10 +1017,11 @@ public class MAST {
             }
             SearchTreeNodeData currentNodeData = getSearchTreeNodeData(currentNode);
             ProperCrossing x = currentNodeData.getX();
-            if(x == null || currentMaxLfringeRweight+edge.getGreenWeight() > x.getWeight())
-                currentNodeData.setX(new ProperCrossing(edge, currentMaxLfringeR));
+            if(x == null || currentMaxLfringeRweight+greenEdge.getGreenWeight() > x.getWeight())
+                currentNodeData.setX(new ProperCrossing(greenEdge, currentMaxLfringeR));
         }
     }
+
     private List<PhylogenyNode> getFringe(List<PhylogenyNode> ancestors, boolean left) {
         List<PhylogenyNode> fringe = new ArrayList<>();
         for (int i = 0; i < ancestors.size(); i++) {

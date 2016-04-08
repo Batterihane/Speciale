@@ -11,6 +11,7 @@ import java.util.List;
  * Created by Thomas on 05-04-2016.
  */
 public class SearchTreeNodeData extends Reference {
+    private String name;
     private int index;
     private int lowIndex; // lowest index in subtree
     private GraphEdge g;
@@ -25,6 +26,8 @@ public class SearchTreeNodeData extends Reference {
 
     public void setG(GraphEdge g) {
         this.g = g;
+        String gString = g == null ? "" : g.toString();
+        System.out.println(name + ": g changed to " + gString);
     }
 
     public ProperCrossing getX() {
@@ -33,6 +36,8 @@ public class SearchTreeNodeData extends Reference {
 
     public void setX(ProperCrossing x) {
         this.x = x;
+        String xString = x == null ? "" : x.toString();
+        System.out.println(name + ": x changed to " + xString);
     }
 
     public AgreementMatching getM() {
@@ -41,6 +46,8 @@ public class SearchTreeNodeData extends Reference {
 
     public void setM(AgreementMatching m) {
         this.m = m;
+        String mString = m == null ? "" : m.toString();
+        System.out.println(name + ": m changed to " + mString);
     }
 
     public ProperCrossing getY() {
@@ -49,6 +56,8 @@ public class SearchTreeNodeData extends Reference {
 
     public void setY(ProperCrossing y) {
         this.y = y;
+        String yString = y == null ? "" : y.toString();
+        System.out.println(name + ": y changed to " + yString);
     }
 
     public GraphEdge getR() {
@@ -57,6 +66,8 @@ public class SearchTreeNodeData extends Reference {
 
     public void setR(GraphEdge r) {
         this.r = r;
+        String rString = r == null ? "" : r.toString();
+        System.out.println(name + ": r changed to " + rString);
     }
 
     public int getIndex() {
@@ -71,5 +82,9 @@ public class SearchTreeNodeData extends Reference {
         super("");
         this.index = index;
         this.lowIndex = lowIndex;
+
+        if(index == lowIndex)
+            name = index + " leaf";
+        else name = index + "";
     }
 }
