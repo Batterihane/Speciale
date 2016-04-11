@@ -1,5 +1,6 @@
 package nlogn;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -9,11 +10,13 @@ public class AgreementMatching {
     ProperCrossing properCrossing;
     List<GraphEdge> whiteEdges; // bottom to top order
     int weight;
+    int numberOfWhiteEdges;
     GraphEdge topmostEdge;
 
     public AgreementMatching(ProperCrossing properCrossing, List<GraphEdge> whiteEdges, int weight) {
         this.properCrossing = properCrossing;
         this.whiteEdges = whiteEdges;
+        this.numberOfWhiteEdges = whiteEdges.size();
         this.weight = weight;
         if(whiteEdges.isEmpty())
             topmostEdge = properCrossing.getGreenEdge();
@@ -33,11 +36,11 @@ public class AgreementMatching {
         return weight;
     }
 
-    public void addWhiteEdge(GraphEdge whiteEdge) {
-        whiteEdges.add(whiteEdge);
-        weight += whiteEdge.getWhiteWeight();
-        topmostEdge = whiteEdge;
-    }
+//    public void addWhiteEdge(GraphEdge whiteEdge) {
+//        whiteEdges.add(whiteEdge);
+//        weight += whiteEdge.getWhiteWeight();
+//        topmostEdge = whiteEdge;
+//    }
 
     public GraphEdge getTopmostEdge(){
         return topmostEdge;
@@ -46,8 +49,8 @@ public class AgreementMatching {
     @Override
     public String toString() {
         String result = "White edges: ";
-        for (GraphEdge whiteEdge : whiteEdges){
-            result += whiteEdge.toString() + ", ";
+        for (int i = 0; i < numberOfWhiteEdges; i++) {
+            result += whiteEdges.get(i).toString() + ", ";
         }
         result += " Proper crossing: " + properCrossing.toString();
         return result;

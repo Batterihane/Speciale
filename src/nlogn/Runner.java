@@ -18,47 +18,60 @@ public class Runner {
     public static void main(String[] args) {
 
         MAST mastFinder = new MAST();
-        PhylogenyNode leftSetNode = new PhylogenyNode();
-        PhylogenyNode rightSetNode1 = new PhylogenyNode();
-        PhylogenyNode rightSetNode2 = new PhylogenyNode();
 
-        NodeDataReference leftSetNodeData = new NodeDataReference();
-        MASTNodeData leftSetNodeMastData = new MASTNodeData();
-        leftSetNodeMastData.setPathNumber(0);
-        leftSetNodeData.setMastNodeData(leftSetNodeMastData);
-        leftSetNode.getNodeData().setReference(leftSetNodeData);
+        List<PhylogenyNode> leftSet = createLeftSet(7);
 
-        NodeDataReference rightSetNode1Data = new NodeDataReference();
-        GraphNodeData rightSetNode1GraphNodeData = new GraphNodeData();
-        rightSetNode1GraphNodeData.setIndex(0);
-        rightSetNode1Data.setGraphNodeData(rightSetNode1GraphNodeData);
-        rightSetNode1.getNodeData().setReference(rightSetNode1Data);
-        rightSetNode1.setName("0");
-
-        NodeDataReference rightSetNode2Data = new NodeDataReference();
-        GraphNodeData rightSetNode2GraphNodeData = new GraphNodeData();
-        rightSetNode2GraphNodeData.setIndex(1);
-        rightSetNode2Data.setGraphNodeData(new GraphNodeData());
-        rightSetNode2.getNodeData().setReference(rightSetNode2Data);
-        rightSetNode2.setName("1");
-
-        List<PhylogenyNode> rightSet = new ArrayList<>();
-        rightSet.add(rightSetNode1);
-        rightSet.add(rightSetNode2);
+        List<PhylogenyNode> rightSet = createRightSet(6);
         Graph graph = new Graph(rightSet);
 
-        GraphEdge edge1 = new GraphEdge(leftSetNode, rightSetNode1);
-        edge1.setWhiteWeight(1);
-        edge1.setRedWeight(1);
-        edge1.setGreenWeight(1);
-        graph.addEdge(edge1);
-
-        GraphEdge edge2 = new GraphEdge(leftSetNode, rightSetNode2);
-        edge2.setWhiteWeight(1);
-        edge2.setRedWeight(1);
-        edge2.setGreenWeight(1);
-        graph.addEdge(edge2);
+        addEdge(graph, leftSet.get(0), rightSet.get(0));
+        addEdge(graph, leftSet.get(0), rightSet.get(1));
+        addEdge(graph, leftSet.get(0), rightSet.get(3));
+        addEdge(graph, leftSet.get(1), rightSet.get(3));
+        addEdge(graph, leftSet.get(2), rightSet.get(2));
+        addEdge(graph, leftSet.get(2), rightSet.get(4));
+        addEdge(graph, leftSet.get(3), rightSet.get(0));
+        addEdge(graph, leftSet.get(4), rightSet.get(0));
+        addEdge(graph, leftSet.get(5), rightSet.get(0));
+        addEdge(graph, leftSet.get(6), rightSet.get(5));
 
         mastFinder.computeMAST(graph, new Phylogeny[0][0]);
+    }
+
+    public static List<PhylogenyNode> createLeftSet(int size) {
+        List<PhylogenyNode> result = new ArrayList<>();
+        for (int i = 0; i < size; i++) {
+            PhylogenyNode node = new PhylogenyNode();
+            NodeDataReference nodeData = new NodeDataReference();
+            MASTNodeData nodeMastData = new MASTNodeData();
+            nodeMastData.setPathNumber(i);
+            nodeData.setMastNodeData(nodeMastData);
+            node.getNodeData().setReference(nodeData);
+            result.add(node);
+        }
+        return result;
+    }
+
+    public static List<PhylogenyNode> createRightSet(int size) {
+        List<PhylogenyNode> result = new ArrayList<>();
+        for (int i = 0; i < size; i++) {
+            PhylogenyNode node = new PhylogenyNode();
+            NodeDataReference nodeData = new NodeDataReference();
+            GraphNodeData nodeGraphData = new GraphNodeData();
+            nodeGraphData.setIndex(i);
+            nodeData.setGraphNodeData(nodeGraphData);
+            node.getNodeData().setReference(nodeData);
+            node.setName(i + "");
+            result.add(node);
+        }
+        return result;
+    }
+
+    public static void addEdge(Graph graph, PhylogenyNode leftNode, PhylogenyNode rightNode) {
+        GraphEdge edge = new GraphEdge(leftNode, rightNode);
+        edge.setWhiteWeight(1);
+        edge.setRedWeight(1);
+        edge.setGreenWeight(1);
+        graph.addEdge(edge);
     }
 }

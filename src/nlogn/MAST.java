@@ -603,6 +603,7 @@ public class MAST {
             }
 
             int whiteWeight = computeWhiteWeight(rightNode, mapNode);
+            computeWhiteWeight(rightNode, mapNode);
             edge.setWhiteWeight(whiteWeight);
 
             int greenWeight = getMASTNodeDataFromNode(mapNode).getSubtreeMASTSize();
@@ -735,7 +736,7 @@ public class MAST {
                         currentSearchTreeNode = currentSearchTreeNode.getChildNode1();
                     else currentSearchTreeNode = currentSearchTreeNode.getChildNode2();
                 }
-
+                System.out.println();
                 processWhiteEdge(ancestors, currentEdge);
 
             }
@@ -942,8 +943,10 @@ public class MAST {
         // largest agreement matching
         AgreementMatching largestAgreementMatching;
         if(maxMWeight > largestProperCrossingWeight){
-            largestAgreementMatching = maxM;
-            largestAgreementMatching.addWhiteEdge(whiteEdge);
+            List<GraphEdge> whiteEdges = maxM.getWhiteEdges();
+            whiteEdges.add(whiteEdge);
+            int matchingWeight = maxM.getWeight() + whiteEdge.getWhiteWeight();
+            largestAgreementMatching = new AgreementMatching(maxM.getProperCrossing(), whiteEdges, matchingWeight);
         }
         else if(largestProperCrossing == null) largestAgreementMatching = null;
         else {
