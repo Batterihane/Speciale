@@ -221,4 +221,48 @@ public class MAST {
         return (NSquaredMASTNodeData) node.getNodeData().getReference();
     }
 
+    public MASTPair[][] getMASTPair(Phylogeny tree1, Phylogeny tree2){
+        setNodeIds(tree1, tree2);
+        int[] traversalNumbers = new int[tree1.getNodeCount() + tree2.getNodeCount()];
+
+        MASTPair[][] subtreeMASTs = new MASTPair[tree1.getNodeCount()][tree2.getNodeCount()];
+
+        PhylogenyNodeIterator tree1Iterator = tree1.iteratorPostorder();
+
+        for (int i = 0 ; tree1Iterator.hasNext() ; i++){
+            PhylogenyNode currentTree1Node = tree1Iterator.next();
+            currentTree1Node.getNodeData().getProperties();
+            traversalNumbers[getMASTNodeDataFromNode(currentTree1Node).getId()] = i;
+
+            PhylogenyNodeIterator tree2Iterator = tree2.iteratorPostorder();
+            for (int j = 0 ; tree2Iterator.hasNext() ; j++){
+                PhylogenyNode currentTree2Node = tree2Iterator.next();
+                traversalNumbers[getMASTNodeDataFromNode(currentTree2Node).getId()] = j;
+
+                if(currentTree1Node.isExternal()){
+                    if(currentTree2Node.isExternal()){
+                        subtreeMASTs[i][j] = leafLeafMAST(currentTree1Node, currentTree2Node);
+                    }
+                    else{
+                        subtreeMASTs[i][j] = leafInternalNodeMAST(traversalNumbers, subtreeMASTs, i, currentTree2Node);
+                    }
+                }
+                else{
+                    if(currentTree2Node.isExternal()){
+                        subtreeMASTs[i][j] = internalNodeLeafMAST(traversalNumbers, subtreeMASTs, currentTree1Node, j);
+                    }
+                    else{
+                        subtreeMASTs[i][j] = internalNodeInternalNodeMAST(traversalNumbers, subtreeMASTs, currentTree1Node, currentTree2Node, i, j);
+                    }
+                }
+            }
+        }
+        Phylogeny tree = new Phylogeny();
+        tree.setRoot(subtreeMASTs[tree1.getNodeCount()-1][tree2.getNodeCount()-1].getMast());
+
+        updateParentReferences(tree);
+        return subtreeMASTs;
+    }
+
+
 }

@@ -1,13 +1,15 @@
 package nlogn;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
  * Created by Thomas on 07-04-2016.
  */
-public class AgreementMatching {
+public class AgreementMatching implements Iterable<GraphEdge> {
     ProperCrossing properCrossing;
     List<GraphEdge> whiteEdges; // bottom to top order
+    int numOfWhiteEdges;
     int weight;
     GraphEdge topmostEdge;
 
@@ -52,4 +54,27 @@ public class AgreementMatching {
         result += " Proper crossing: " + properCrossing.toString();
         return result;
     }
+
+    @Override
+    public Iterator<GraphEdge> iterator() {
+        return new WhiteEdgeIterator();
+    }
+
+    public class WhiteEdgeIterator implements Iterator<GraphEdge> {
+        int currentIndex = -1;
+
+        public boolean hasNext() {
+            return currentIndex < numOfWhiteEdges - 1;
+        }
+
+        public GraphEdge next() {
+            currentIndex++;
+            return whiteEdges.get(currentIndex);
+        }
+
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
+    }
 }
+

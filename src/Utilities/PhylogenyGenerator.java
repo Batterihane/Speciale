@@ -57,6 +57,8 @@ public class PhylogenyGenerator {
         return tree;
     }
 
+
+
     public static void renameTreeLeavesLeftToRight(Phylogeny tree){
         PhylogenyNodeIterator iterator = tree.iteratorPreorder();
         int i = 0;
@@ -94,6 +96,86 @@ public class PhylogenyGenerator {
         }
         currentNode.setChild1(nodes.get(0));
         currentNode.setChild2(nodes.get(1));
+        return tree;
+    }
+
+    public static Phylogeny generateTreeExampleA() {
+        Phylogeny tree = new Phylogeny();
+        PhylogenyNode root = new PhylogenyNode();
+
+        PhylogenyNode[] leaves = new PhylogenyNode[9];
+
+        for (int i = 1; i < leaves.length; i++) {
+            PhylogenyNode leaf = new PhylogenyNode();
+            leaf.setName(i+"");
+            leaves[i] = leaf;
+        }
+
+        PhylogenyNode NodeB = new PhylogenyNode();
+        PhylogenyNode NodeC = new PhylogenyNode();
+        PhylogenyNode NodeD = new PhylogenyNode();
+        PhylogenyNode NodeE = new PhylogenyNode();
+        PhylogenyNode NodeF = new PhylogenyNode();
+        PhylogenyNode NodeG = new PhylogenyNode();
+
+        NodeC.setChild1(leaves[1]);
+        NodeC.setChild2(leaves[2]);
+        NodeD.setChild1(leaves[3]);
+        NodeD.setChild2(leaves[4]);
+        NodeF.setChild1(leaves[5]);
+        NodeF.setChild2(leaves[6]);
+        NodeG.setChild1(leaves[7]);
+        NodeG.setChild2(leaves[8]);
+
+        NodeB.setChild1(NodeC);
+        NodeB.setChild2(NodeD);
+        NodeE.setChild1(NodeF);
+        NodeE.setChild2(NodeG);
+
+        root.setChild1(NodeB);
+        root.setChild2(NodeE);
+        tree.setRoot(root);
+
+        return tree;
+    }
+
+    public static Phylogeny generateTreeExampleH() {
+        Phylogeny tree = new Phylogeny();
+        PhylogenyNode root = new PhylogenyNode();
+
+        PhylogenyNode[] leaves = new PhylogenyNode[9];
+
+        for (int i = 1; i < leaves.length; i++) {
+            PhylogenyNode leaf = new PhylogenyNode();
+            leaf.setName(i+"");
+            leaves[i] = leaf;
+        }
+
+        PhylogenyNode NodeI = new PhylogenyNode();
+        PhylogenyNode NodeJ = new PhylogenyNode();
+        PhylogenyNode NodeL = new PhylogenyNode();
+        PhylogenyNode NodeM = new PhylogenyNode();
+        PhylogenyNode NodeN = new PhylogenyNode();
+        PhylogenyNode NodeF = new PhylogenyNode();
+
+        NodeJ.setChild1(leaves[1]);
+        NodeJ.setChild2(leaves[8]);
+        NodeL.setChild1(leaves[5]);
+        NodeL.setChild2(leaves[6]);
+        NodeN.setChild1(leaves[2]);
+        NodeN.setChild2(leaves[7]);
+        NodeF.setChild1(leaves[3]);
+        NodeF.setChild2(leaves[4]);
+
+        NodeI.setChild1(NodeJ);
+        NodeI.setChild2(NodeL);
+        NodeM.setChild1(NodeN);
+        NodeM.setChild2(NodeF);
+
+        root.setChild1(NodeI);
+        root.setChild2(NodeM);
+        tree.setRoot(root);
+
         return tree;
     }
 }
