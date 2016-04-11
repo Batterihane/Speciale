@@ -9,11 +9,16 @@ public class AgreementMatching {
     ProperCrossing properCrossing;
     List<GraphEdge> whiteEdges; // bottom to top order
     int weight;
+    GraphEdge topmostEdge;
 
     public AgreementMatching(ProperCrossing properCrossing, List<GraphEdge> whiteEdges, int weight) {
         this.properCrossing = properCrossing;
         this.whiteEdges = whiteEdges;
         this.weight = weight;
+        if(whiteEdges.isEmpty())
+            topmostEdge = properCrossing.getGreenEdge();
+        else
+            topmostEdge = whiteEdges.get(whiteEdges.size()-1);
     }
 
     public ProperCrossing getProperCrossing() {
@@ -31,6 +36,11 @@ public class AgreementMatching {
     public void addWhiteEdge(GraphEdge whiteEdge) {
         whiteEdges.add(whiteEdge);
         weight += whiteEdge.getWhiteWeight();
+        topmostEdge = whiteEdge;
+    }
+
+    public GraphEdge getTopmostEdge(){
+        return topmostEdge;
     }
 
     @Override

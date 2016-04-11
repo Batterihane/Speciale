@@ -11,8 +11,8 @@ import java.util.List;
  * Created by Thomas on 15-03-2016.
  */
 public class Graph {
-    private List<PhylogenyNode> leftSet;
-    private List<PhylogenyNode> rightSet;
+    private List<PhylogenyNode> leftSet; // top-down order
+    private List<PhylogenyNode> rightSet; // top-down order
     private List<GraphEdge> edges;
     private GraphEdge lastAddedEdge;
     private int nsav;
@@ -43,7 +43,7 @@ public class Graph {
         return nsav;
     }
 
-    public void addNodeToLeftSet(PhylogenyNode node){
+    private void addNodeToLeftSet(PhylogenyNode node){
         leftSet.add(node);
         ((NodeDataReference) node.getNodeData().getReference()).setGraphNodeData(new GraphNodeData());
     }

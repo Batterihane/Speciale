@@ -1,5 +1,8 @@
 package nlogn;
 
+import Utilities.DataObjects.GraphNodeData;
+import Utilities.DataObjects.MASTNodeData;
+import Utilities.DataObjects.NodeDataReference;
 import Utilities.ForesterNewickParser;
 import Utilities.LCA;
 import Utilities.PhylogenyGenerator;
@@ -13,35 +16,49 @@ import java.util.List;
 
 public class Runner {
     public static void main(String[] args) {
-        ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
 
-//        Phylogeny tree1 = foresterNewickParser.parseNewickFile("treess\\Tree1.new");
-//        Phylogeny tree2 = foresterNewickParser.parseNewickFile("treess\\Tree4.new");
-        Phylogeny tree1 = PhylogenyGenerator.generateTree(10);
-        Phylogeny tree2 = PhylogenyGenerator.generateTree(10);
-        foresterNewickParser.displayPhylogeny(tree1);
-//        foresterNewickParser.displayPhylogeny(tree2);
+        MAST mastFinder = new MAST();
+        PhylogenyNode leftSetNode = new PhylogenyNode();
+        PhylogenyNode rightSetNode1 = new PhylogenyNode();
+        PhylogenyNode rightSetNode2 = new PhylogenyNode();
 
-        SubtreeProcessor subtreeProcessor = new SubtreeProcessor(tree1);
-        List<PhylogenyNode> leaves = tree1.getExternalNodes();
-        List<PhylogenyNode> leavesSubset = new ArrayList<>();
-        leavesSubset.add(leaves.get(0));
-        leavesSubset.add(leaves.get(4));
-        leavesSubset.add(leaves.get(5));
-        leavesSubset.add(leaves.get(7));
-        leavesSubset.add(leaves.get(9));
-        foresterNewickParser.displayPhylogeny(subtreeProcessor.induceSubtree(leavesSubset));
+        NodeDataReference leftSetNodeData = new NodeDataReference();
+        MASTNodeData leftSetNodeMastData = new MASTNodeData();
+        leftSetNodeMastData.setPathNumber(0);
+        leftSetNodeData.setMastNodeData(leftSetNodeMastData);
+        leftSetNode.getNodeData().setReference(leftSetNodeData);
 
-        for(PhylogenyNode node : leavesSubset){
-            System.out.println(node.getName());
-        }
+        NodeDataReference rightSetNode1Data = new NodeDataReference();
+        GraphNodeData rightSetNode1GraphNodeData = new GraphNodeData();
+        rightSetNode1GraphNodeData.setIndex(0);
+        rightSetNode1Data.setGraphNodeData(rightSetNode1GraphNodeData);
+        rightSetNode1.getNodeData().setReference(rightSetNode1Data);
+        rightSetNode1.setName("0");
 
-//        MAST mast = new MAST();
-//        System.out.println(mast.getMASTsize(tree1, tree2));
-//        LCA lca = new LCA(tree1);
-//        System.out.println(lca.getLCA(tree1.getNode(1), tree1.getNode(1)).getId());
+        NodeDataReference rightSetNode2Data = new NodeDataReference();
+        GraphNodeData rightSetNode2GraphNodeData = new GraphNodeData();
+        rightSetNode2GraphNodeData.setIndex(1);
+        rightSetNode2Data.setGraphNodeData(new GraphNodeData());
+        rightSetNode2.getNodeData().setReference(rightSetNode2Data);
+        rightSetNode2.setName("1");
 
+        List<PhylogenyNode> rightSet = new ArrayList<>();
+        rightSet.add(rightSetNode1);
+        rightSet.add(rightSetNode2);
+        Graph graph = new Graph(rightSet);
 
+        GraphEdge edge1 = new GraphEdge(leftSetNode, rightSetNode1);
+        edge1.setWhiteWeight(1);
+        edge1.setRedWeight(1);
+        edge1.setGreenWeight(1);
+        graph.addEdge(edge1);
 
+        GraphEdge edge2 = new GraphEdge(leftSetNode, rightSetNode2);
+        edge2.setWhiteWeight(1);
+        edge2.setRedWeight(1);
+        edge2.setGreenWeight(1);
+        graph.addEdge(edge2);
+
+        mastFinder.computeMAST(graph, new Phylogeny[0][0]);
     }
 }

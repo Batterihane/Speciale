@@ -68,6 +68,7 @@ public class WeightBalancedBinarySearchTree {
     }
 
     public Phylogeny constructTree(double[] weights){
+        int treeSize = weights.length;
         Phylogeny tree = new Phylogeny();
         double[] l = computeLFromWeights(weights);
         double[] r = computeRFromWeights(weights);
@@ -83,9 +84,9 @@ public class WeightBalancedBinarySearchTree {
             boolean isLeftChild = stackItem.isLeftChild();
 
             if(j == i + 1){
-                PhylogenyNode newNode = createAndAddNode(j, j + "", parentNode, isLeftChild);
-                createAndAddNode(i, i + ": " + weights[i], newNode, true); // left child
-                createAndAddNode(j, j + ": " + weights[j], newNode, false); // right child
+                PhylogenyNode newNode = createAndAddNode(j, j + "", parentNode, isLeftChild, treeSize);
+                createAndAddNode(i, i + ": " + weights[i], newNode, true, treeSize); // left child
+                createAndAddNode(j, j + ": " + weights[j], newNode, false, treeSize); // right child
                 if(parentNode == null){
                     tree.setRoot(newNode);
                 }
@@ -94,7 +95,7 @@ public class WeightBalancedBinarySearchTree {
 
             int indexOfCut = findRootIndex(l, r, i, j);
 
-            PhylogenyNode newNode = createAndAddNode(indexOfCut, indexOfCut + "", parentNode, isLeftChild);
+            PhylogenyNode newNode = createAndAddNode(indexOfCut, indexOfCut + "", parentNode, isLeftChild, treeSize);
             PhylogenyNode dummyNode = new PhylogenyNode();
             newNode.setChild1(dummyNode);
             newNode.setChild2(dummyNode);
@@ -108,7 +109,7 @@ public class WeightBalancedBinarySearchTree {
                 stack.push(new StackItem(leftFrom, leftTo, newNode, true));
             }
             else {
-                createAndAddNode(i, i + ": " + weights[i], newNode, true); // left child
+                createAndAddNode(i, i + ": " + weights[i], newNode, true, treeSize); // left child
             }
 
             if(indexOfCut != j){
@@ -117,29 +118,34 @@ public class WeightBalancedBinarySearchTree {
                 stack.push(new StackItem(rightFrom, rightTo, newNode, false));
             }
             else {
-                createAndAddNode(j, j + ": " + weights[j], newNode, false); // right child
+                createAndAddNode(j, j + ": " + weights[j], newNode, false, treeSize); // right child
             }
         }
         return tree;
     }
 
-    private PhylogenyNode createAndAddNode(int index, String name, PhylogenyNode parent, boolean isLeftChild){
+    private PhylogenyNode createAndAddNode(int index, String name, PhylogenyNode parent, boolean isLeftChild, int treeSize){
         PhylogenyNode newNode = new PhylogenyNode();
-        int lowIndex;
-        if(parent == null) lowIndex = 0;
+        int lowIndex, maxIndex;
+        if(parent == null){
+            lowIndex = 0;
+            maxIndex = treeSize-1;
+        }
         else {
             SearchTreeNodeData parentData = (SearchTreeNodeData) parent.getNodeData().getReference();
             if(isLeftChild) {
                 parent.setChild1(newNode);
                 lowIndex = parentData.getLowIndex();
+                maxIndex = parentData.getIndex() - 1;
             }
             else {
                 parent.setChild2(newNode);
                 lowIndex = parentData.getIndex();
+                maxIndex = parentData.getMaxIndex();
             }
 
         }
-        newNode.getNodeData().addReference(new SearchTreeNodeData(index, lowIndex));
+        newNode.getNodeData().addReference(new SearchTreeNodeData(index, lowIndex, maxIndex));
         newNode.setName(name);
         return newNode;
     }

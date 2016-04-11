@@ -669,7 +669,113 @@ public class MAST {
     }
 
     // Compute agreement matchings
-    private void computeMAST(Graph graph, Phylogeny[][] masts) {
+    public void computeMAST(Graph graph, Phylogeny[][] masts) {
+        System.out.println("\n\n\n");
+        List<PhylogenyNode> leftSet = graph.getLeftSet();
+        System.out.println("Left set:");
+        for (PhylogenyNode node : leftSet){
+            System.out.println(getMASTNodeDataFromNode(node).getPathNumber());
+        }
+
+        List<PhylogenyNode> rightSet = graph.getRightSet();
+        double[] weights = setIndexNumbersAndGetWeights(graph, rightSet);
+
+        System.out.println("Right set:");
+        for (PhylogenyNode node : rightSet){
+            System.out.println(getGraphNodeData(node).getIndex());
+        }
+
+        Phylogeny searchTree = new WeightBalancedBinarySearchTree().constructTree(weights);
+        MainFrame application = Archaeopteryx.createApplication(searchTree);
+
+        List<GraphEdge> edges = graph.getEdges();
+        PhylogenyNode previousLeftNode = new PhylogenyNode();
+        PhylogenyNode previousSearchTreeNode = new PhylogenyNode();
+        List<PhylogenyNode> previousAncestors = new ArrayList<>();
+
+        int edgeIndex = edges.size()-1;
+        for (int leftNodeIndex = leftSet.size()-1; leftNodeIndex >= 0; leftNodeIndex--) {
+            PhylogenyNode leftNode = leftSet.get(leftNodeIndex);
+            List<GraphEdge> edgesFromLeftNode = new ArrayList<>(); // bottom-up order
+            GraphEdge currentEdgeToAdd;
+            while (edgeIndex >= 0){
+                currentEdgeToAdd = edges.get(edgeIndex);
+                if(currentEdgeToAdd.getLeft() == leftNode){
+                    edgesFromLeftNode.add(currentEdgeToAdd);
+                    edgeIndex--;
+                }
+                else break;
+            }
+
+            // get search tree node and ancestors
+            PhylogenyNode currentSearchTreeNode = searchTree.getRoot();
+            List<PhylogenyNode> ancestors = new ArrayList<>();
+
+            // process white edges
+            for (int i = edgesFromLeftNode.size()-1; i >=0; i--) {
+                GraphEdge currentEdge = edgesFromLeftNode.get(i);
+                PhylogenyNode rightNode = currentEdge.getRight();
+                int rightNodeIndex = getGraphNodeData(rightNode).getIndex();
+
+                int currentSearchTreeNodeMaxIndex = getSearchTreeNodeData(currentSearchTreeNode).getMaxIndex();
+                if(rightNodeIndex > currentSearchTreeNodeMaxIndex){
+                    while (rightNodeIndex > currentSearchTreeNodeMaxIndex){
+                        currentSearchTreeNode = currentSearchTreeNode.getParent();
+                        currentSearchTreeNodeMaxIndex = getSearchTreeNodeData(currentSearchTreeNode).getMaxIndex();
+                        ancestors.remove(ancestors.size()-1);
+                    }
+                    currentSearchTreeNode = currentSearchTreeNode.getChildNode2();
+                }
+
+                while (true){
+                    ancestors.add(currentSearchTreeNode);
+                    if(currentSearchTreeNode.isExternal()) break;
+                    SearchTreeNodeData searchTreeNodeData = getSearchTreeNodeData(currentSearchTreeNode);
+                    if (rightNodeIndex < searchTreeNodeData.getIndex())
+                        currentSearchTreeNode = currentSearchTreeNode.getChildNode1();
+                    else currentSearchTreeNode = currentSearchTreeNode.getChildNode2();
+                }
+
+                processWhiteEdge(ancestors, currentEdge);
+
+            }
+
+            currentSearchTreeNode = searchTree.getRoot();
+            ancestors = new ArrayList<>();
+
+            // process red and green edges
+            for (GraphEdge currentEdge : edgesFromLeftNode) {
+                PhylogenyNode rightNode = currentEdge.getRight();
+                int rightNodeIndex = getGraphNodeData(rightNode).getIndex();
+
+                int currentSearchTreeNodeLowIndex = getSearchTreeNodeData(currentSearchTreeNode).getLowIndex();
+                if(rightNodeIndex < currentSearchTreeNodeLowIndex){
+                    while (rightNodeIndex < currentSearchTreeNodeLowIndex){
+                        currentSearchTreeNode = currentSearchTreeNode.getParent();
+                        currentSearchTreeNodeLowIndex = getSearchTreeNodeData(currentSearchTreeNode).getLowIndex();
+                        ancestors.remove(ancestors.size()-1);
+                    }
+                    currentSearchTreeNode = currentSearchTreeNode.getChildNode1();
+                }
+
+                while (true){
+                    ancestors.add(currentSearchTreeNode);
+                    if(currentSearchTreeNode.isExternal()) break;
+                    SearchTreeNodeData searchTreeNodeData = getSearchTreeNodeData(currentSearchTreeNode);
+                    if (rightNodeIndex < searchTreeNodeData.getIndex())
+                        currentSearchTreeNode = currentSearchTreeNode.getChildNode1();
+                    else currentSearchTreeNode = currentSearchTreeNode.getChildNode2();
+                }
+
+                processRedEdge(ancestors, currentEdge);
+                processGreenEdge(ancestors, currentEdge);
+
+            }
+
+        }
+        application.dispose();
+    }
+    public void computeMASTArticle(Graph graph, Phylogeny[][] masts) {
         System.out.println("\n\n\n");
         List<PhylogenyNode> leftSet = graph.getLeftSet();
         System.out.println("Left set:");
@@ -723,8 +829,11 @@ public class MAST {
             }
 
             processWhiteEdge(ancestors, edge);
+            System.out.println();
             processRedEdge(ancestors, edge);
+            System.out.println();
             processGreenEdge(ancestors, edge);
+            System.out.println();
 
             previousLeftNode = leftNode;
             previousSearchTreeNode = currentSearchTreeNode;
@@ -782,8 +891,7 @@ public class MAST {
         for (PhylogenyNode currentNode : rfringe){
             SearchTreeNodeData nodeData = getSearchTreeNodeData(currentNode);
             AgreementMatching m = nodeData.getM();
-            // TODO: exclude matchings whith topmost edge from u_i
-            if(m != null){
+            if(m != null && m.getTopmostEdge().getLeft() != whiteEdge.getLeft()){
                 int mWeight = m.getWeight();
                 if(mWeight > maxMWeight){
                     maxM = m;
@@ -792,8 +900,7 @@ public class MAST {
             }
 
             ProperCrossing x = nodeData.getX();
-            // TODO: exclude proper crossings whith topmost edge from u_i
-            if(x != null){
+            if(x != null && x.getGreenEdge().getLeft() != whiteEdge.getLeft()){
                 int xWeight = x.getWeight();
                 if(xWeight > maxXWeight){
                     maxX = x;
@@ -802,8 +909,7 @@ public class MAST {
             }
 
             ProperCrossing y = nodeData.getY();
-            // TODO: exclude proper crossings whith topmost edge from u_i
-            if(y != null){
+            if(y != null && y.getGreenEdge().getLeft() != whiteEdge.getLeft()){
                 int yWeight = y.getWeight();
                 if(yWeight > maxYWeight){
                     maxY = y;
@@ -938,7 +1044,7 @@ public class MAST {
                     SearchTreeNodeData childToUpdateData = getSearchTreeNodeData(childToUpdate);
                     GraphEdge childG = childToUpdateData.getG();
                     if(childG == null || currentMaxAncestorGWeight > childG.getGreenWeight())
-                        currentNodeData.setG(currentMaxAncestorG);
+                        childToUpdateData.setG(currentMaxAncestorG);
                 }
 
                 // update y

@@ -14,6 +14,7 @@ public class SearchTreeNodeData extends Reference {
     private String name;
     private int index;
     private int lowIndex; // lowest index in subtree
+    private int maxIndex; // largest index in subtree
     private GraphEdge g;
     private ProperCrossing x;
     private AgreementMatching m;
@@ -78,10 +79,15 @@ public class SearchTreeNodeData extends Reference {
         return lowIndex;
     }
 
-    public SearchTreeNodeData(int index, int lowIndex) {
+    public int getMaxIndex() {
+        return maxIndex;
+    }
+
+    public SearchTreeNodeData(int index, int lowIndex, int maxIndex) {
         super("");
         this.index = index;
         this.lowIndex = lowIndex;
+        this.maxIndex = maxIndex;
 
         if(index == lowIndex)
             name = index + " leaf";
