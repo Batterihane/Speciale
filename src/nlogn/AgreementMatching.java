@@ -16,6 +16,7 @@ public class AgreementMatching implements Iterable<GraphEdge> {
     public AgreementMatching(ProperCrossing properCrossing, List<GraphEdge> whiteEdges, int weight) {
         this.properCrossing = properCrossing;
         this.whiteEdges = whiteEdges;
+        this.numOfWhiteEdges = whiteEdges.size();
         this.weight = weight;
         if(whiteEdges.isEmpty())
             topmostEdge = properCrossing.getGreenEdge();
@@ -35,11 +36,11 @@ public class AgreementMatching implements Iterable<GraphEdge> {
         return weight;
     }
 
-    public void addWhiteEdge(GraphEdge whiteEdge) {
-        whiteEdges.add(whiteEdge);
-        weight += whiteEdge.getWhiteWeight();
-        topmostEdge = whiteEdge;
-    }
+//    public void addWhiteEdge(GraphEdge whiteEdge) {
+//        whiteEdges.add(whiteEdge);
+//        weight += whiteEdge.getWhiteWeight();
+//        topmostEdge = whiteEdge;
+//    }
 
     public GraphEdge getTopmostEdge(){
         return topmostEdge;
