@@ -2,6 +2,7 @@ package Utilities.DataObjects;
 
 import nlogn.Graph;
 import nlogn.GraphEdge;
+import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
 import org.forester.phylogeny.data.Reference;
 
@@ -17,6 +18,7 @@ public class MASTNodeData extends Reference {
     private int pathNumber; // for node u_i in pi: i, for node v in pi(x_j): j
     private PhylogenyNode twin; // for all leaves
     private Graph graph; // only for nodes in T2 at the beginning of a centroid path
+    private Phylogeny subtreeMAST; // MAST(T1, T2(y)) for node y
     private int subtreeMASTSize; // size of MAST(T1, T2(y)) for node y
     private PhylogenyNode siNode; // reference to corresponding si node - only for nodes in T2
     private PhylogenyNode t2Node; // reference from si node to corresponding t2 node
@@ -51,6 +53,14 @@ public class MASTNodeData extends Reference {
 
     public void setLisNumber(int lisNumber) {
         this.lisNumber = lisNumber;
+    }
+
+    public Phylogeny getSubtreeMAST() {
+        return subtreeMAST;
+    }
+
+    public void setSubtreeMAST(Phylogeny subtreeMAST) {
+        this.subtreeMAST = subtreeMAST;
     }
 
     public int getSubtreeMASTSize() {

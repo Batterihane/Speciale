@@ -3,15 +3,10 @@ package nlogn;
 import Utilities.DataObjects.GraphNodeData;
 import Utilities.DataObjects.MASTNodeData;
 import Utilities.DataObjects.NodeDataReference;
-import Utilities.ForesterNewickParser;
-import Utilities.LCA;
-import Utilities.PhylogenyGenerator;
-import Utilities.SubtreeProcessor;
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 public class Runner {
@@ -35,7 +30,7 @@ public class Runner {
         addEdge(graph, leftSet.get(5), rightSet.get(0));
         addEdge(graph, leftSet.get(6), rightSet.get(5));
 
-        mastFinder.computeMAST(graph, new Phylogeny[0][0]);
+        mastFinder.computeLWAMsAndMastSizes(graph, new int[leftSet.size()][1]);
     }
 
     public static List<PhylogenyNode> createLeftSet(int size) {
@@ -60,6 +55,9 @@ public class Runner {
             GraphNodeData nodeGraphData = new GraphNodeData();
             nodeGraphData.setIndex(i);
             nodeData.setGraphNodeData(nodeGraphData);
+            MASTNodeData mastNodeData = new MASTNodeData();
+            mastNodeData.setPathNumber(0);
+            nodeData.setMastNodeData(mastNodeData);
             node.getNodeData().setReference(nodeData);
             node.setName(i + "");
             result.add(node);
