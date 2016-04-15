@@ -15,7 +15,7 @@ public class MASTNodeData extends Reference {
     private int lisNumber; // base case
     private int miNumber; // only for leaves in T1 except for u_p
     private int leafNumber; // only for leaves in T2
-    private int pathNumber; // for node u_i in pi: i, for node v in pi(x_j): j
+    private int pathNumber = -1; // for node u_i in pi: i, for topmost node v in pi(x_j): j
     private PhylogenyNode twin; // for all leaves
     private Graph graph; // only for nodes in T2 at the beginning of a centroid path
     private Phylogeny subtreeMAST; // MAST(T1, T2(y)) for node y

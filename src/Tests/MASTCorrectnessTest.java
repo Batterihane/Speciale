@@ -22,16 +22,17 @@ public class MASTCorrectnessTest {
             PhylogenyGenerator.renameTreeLeavesLeftToRight(tree2);
             MAST nLogNMastFinder = new MAST();
             n_squared.MAST nSquaredMastFinder = new n_squared.MAST();
-//            Phylogeny nLogNMast = nLogNMastFinder.getMAST(tree1, tree2);
-//            int nLogNMastSize = nLogNMast.getNumberOfExternalNodes();
-            int nLogNMastSize = nLogNMastFinder.getMAST(tree1, tree2);
+            MAST.TreeAndSizePair nLogNTreeAndSize = nLogNMastFinder.getMAST(tree1, tree2);
+            Phylogeny nLogNMast = nLogNTreeAndSize.getTree();
+            int nLogNMastSize = nLogNTreeAndSize.getSize();
+//            int nLogNMastSize = nLogNMastFinder.getMAST(tree1, tree2).getNumberOfExternalNodes();
             Phylogeny nSquaredMast = nSquaredMastFinder.getMAST(tree1, tree2);
             int nSquaredMastSize = nSquaredMast.getNumberOfExternalNodes();
 
             if(nLogNMastSize != nSquaredMastSize){
                 Archaeopteryx.createApplication(tree1);
                 Archaeopteryx.createApplication(tree2);
-//                Archaeopteryx.createApplication(nLogNMast);
+                Archaeopteryx.createApplication(nLogNMast);
                 Archaeopteryx.createApplication(nSquaredMast);
 
                 System.out.println(i + ": Failure - nlogn(" + nLogNMastSize + "), nsquared(" + nSquaredMastSize + ")");

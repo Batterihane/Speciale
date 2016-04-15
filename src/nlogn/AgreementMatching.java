@@ -13,12 +13,12 @@ public class AgreementMatching implements Iterable<GraphEdge> {
     int weight;
     GraphEdge topmostEdge;
 
-    public AgreementMatching(ProperCrossing properCrossing, List<GraphEdge> whiteEdges, int weight) {
+    public AgreementMatching(ProperCrossing properCrossing, List<GraphEdge> whiteEdges, int numberOfWhiteEdges, int weight) {
         this.properCrossing = properCrossing;
         this.whiteEdges = whiteEdges;
-        this.numOfWhiteEdges = whiteEdges.size();
+        this.numOfWhiteEdges = numberOfWhiteEdges;
         this.weight = weight;
-        if(whiteEdges.isEmpty())
+        if(whiteEdges == null || whiteEdges.isEmpty())
             topmostEdge = properCrossing.getGreenEdge();
         else
             topmostEdge = whiteEdges.get(whiteEdges.size()-1);
@@ -28,7 +28,7 @@ public class AgreementMatching implements Iterable<GraphEdge> {
         return properCrossing;
     }
 
-    public List<GraphEdge> getWhiteEdges() {
+    public List<GraphEdge> getAllWhiteEdges() {
         return whiteEdges;
     }
 
@@ -44,6 +44,10 @@ public class AgreementMatching implements Iterable<GraphEdge> {
 
     public GraphEdge getTopmostEdge(){
         return topmostEdge;
+    }
+
+    public int getNumberOfWhiteEdges() {
+        return numOfWhiteEdges;
     }
 
     @Override

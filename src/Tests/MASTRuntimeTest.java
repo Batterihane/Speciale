@@ -13,7 +13,7 @@ public class MASTRuntimeTest {
     public static void main(String[] args) {
         ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
 
-        for (int i = 100; i < 10000; i+= 100) {
+        for (int i = 100; i < 100000; i+= 100) {
             Phylogeny tree1 = PhylogenyGenerator.generateTree(i);
             Phylogeny tree2 = PhylogenyGenerator.generateTree(i);
             MAST mast = new MAST();
