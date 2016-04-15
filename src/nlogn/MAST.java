@@ -21,8 +21,8 @@ public class MAST {
         ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
 //        Phylogeny tree = foresterNewickParser.parseNewickFile("treess\\Tree2.new");
 
-        Phylogeny tree1 = PhylogenyGenerator.generateTree(11);
-        Phylogeny tree2 = PhylogenyGenerator.generateTree(11);
+        Phylogeny tree1 = PhylogenyGenerator.generateTree(5);
+        Phylogeny tree2 = PhylogenyGenerator.generateTree(5);
         PhylogenyGenerator.renameTreeLeavesLeftToRight(tree2);
         MAST mast = new MAST();
 //        List<PhylogenyNode> firstDecomposition = mast.computeFirstDecomposition(tree);
@@ -36,6 +36,12 @@ public class MAST {
     }
 
     public TreeAndSizePair getMAST(Phylogeny tree1, Phylogeny tree2){
+        TreeAndSizePair mast = getMASTRecursive(tree1, tree2);
+        updateParentReferences(mast.getTree());
+        return mast;
+    }
+
+    public TreeAndSizePair getMASTRecursive(Phylogeny tree1, Phylogeny tree2){
         addNodeDataReferences(tree1);
         addNodeDataReferences(tree2);
 
@@ -75,7 +81,7 @@ public class MAST {
 
         setTwins(tree1, tree2);
         List<PhylogenyNode> tree1Decomposition = computeFirstDecomposition(tree1);
-        List<List<PhylogenyNode>> tree2Decomposition = computeSecondDecomposition(tree2);
+        List<List<PhylogenyNode>> tree2Decomposition = computeSecondDecompositionAndAddMASTsToLeaves(tree2);
 
         // lis base case
 //        if(tree1Decomposition.size() == numberOfLeaves && tree2Decomposition.size() == 1){
@@ -88,7 +94,11 @@ public class MAST {
 
         TreeAndSizePair mast = createGraphsAndComputeMAST(tree1Decomposition, tree2Decomposition, siSubtrees);
 
+        // Set MAST for leaves in T2
+
+
 //        throw new NotImplementedException();
+//        updateParentReferences(mast.getTree()); // TODO: remove
         return mast;
     }
 
@@ -303,7 +313,7 @@ public class MAST {
 
         return result;
     }
-    public List<List<PhylogenyNode>> computeSecondDecomposition(Phylogeny tree){
+    public List<List<PhylogenyNode>> computeSecondDecompositionAndAddMASTsToLeaves(Phylogeny tree){
         List<List<PhylogenyNode>> result = new ArrayList<>();
         Stack<PhylogenyNode> remainingStartNodes = new Stack<>();
         PhylogenyNode root = tree.getRoot();
@@ -323,10 +333,20 @@ public class MAST {
                 if(firstChild.getNumberOfExternalNodes() > secondChild.getNumberOfExternalNodes()){
                     currentNode = firstChild;
                     if(!secondChild.isExternal()) remainingStartNodes.push(secondChild);
+                    else {
+                        MASTNodeData secondChildData = getMASTNodeDataFromNode(secondChild);
+                        secondChildData.setSubtreeMAST(createTreeWithOneNode(secondChild.getName()));
+                        secondChildData.setSubtreeMASTSize(1);
+                    }
                 }
                 else {
                     currentNode = secondChild;
                     if(!firstChild.isExternal()) remainingStartNodes.push(firstChild);
+                    else {
+                        MASTNodeData firstChildData = getMASTNodeDataFromNode(firstChild);
+                        firstChildData.setSubtreeMAST(createTreeWithOneNode(firstChild.getName()));
+                        firstChildData.setSubtreeMASTSize(1);
+                    }
                 }
             }
             newPath.add(currentNode);
@@ -460,7 +480,7 @@ public class MAST {
             mi = copyMiTreeAndSetTwins(mi);
 
             Phylogeny si = siSubtrees.get(i);
-            getMAST(mi, si);
+            getMASTRecursive(mi, si);
         }
     }
     private Phylogeny copyMiTreeAndSetTwins(Phylogeny tree){
@@ -516,9 +536,8 @@ public class MAST {
             Graph graph = graphs[i];
             setGraphEdgesWeights(graph, masts);
             searchTree = computeLWAMsAndMastSizes(graph, masts);
-            computeMASTs(graph, searchTree);
+            computeMASTs(graph, searchTree, masts);
         }
-        // TODO: compute MAST(T1,T2) from searchTree
         SearchTreeNodeData rootData = getSearchTreeNodeData(searchTree.getRoot());
         AgreementMatching rootM = rootData.getM();
         ProperCrossing rootX = rootData.getX();
@@ -534,11 +553,11 @@ public class MAST {
             heaviestMatchingWeight = mWeight;
         }
         else if(xWeight > rWeight){
-            heaviestMatching = new AgreementMatching(rootX, null, 0, xWeight);
+            heaviestMatching = new AgreementMatching(rootX, null, xWeight);
             heaviestMatchingWeight = xWeight;
         }
         else {
-            heaviestMatching = new AgreementMatching(new ProperCrossing(null, rootR), null, 0, rWeight);
+            heaviestMatching = new AgreementMatching(new ProperCrossing(null, rootR), null, rWeight);
             heaviestMatchingWeight = rWeight;
         }
 
@@ -648,7 +667,6 @@ public class MAST {
             }
 
             int whiteWeight = computeWhiteWeight(rightNode, mapNode);
-            computeWhiteWeight(rightNode, mapNode);
             edge.setWhiteWeight(whiteWeight);
 
             int greenWeight = getMASTNodeDataFromNode(mapNode).getSubtreeMASTSize();
@@ -805,7 +823,7 @@ public class MAST {
             int rWeight = r == null ? 0 : r.getRedWeight();
             if(mWeight > xWeight){
                 if(rWeight > mWeight){
-                    heaviestMatching = new AgreementMatching(new ProperCrossing(null, r), null, 0, rWeight);
+                    heaviestMatching = new AgreementMatching(new ProperCrossing(null, r), null, rWeight);
                     heaviestMatchingWeight = rWeight;
                 }
                 else {
@@ -814,16 +832,16 @@ public class MAST {
                 }
             }
             else if(rWeight > xWeight){
-                heaviestMatching = new AgreementMatching(new ProperCrossing(null, r), null, 0, rWeight);
+                heaviestMatching = new AgreementMatching(new ProperCrossing(null, r), null, rWeight);
                 heaviestMatchingWeight = rWeight;
             }
             else {
-                heaviestMatching = new AgreementMatching(x, null, 0, xWeight);
+                heaviestMatching = new AgreementMatching(x, null, xWeight);
                 heaviestMatchingWeight = xWeight;
             }
-
+            int leftNodePathNumber = getMASTNodeDataFromNode(leftNode).getPathNumber();
             int rightSetPathNumber = getMASTNodeDataFromNode(rightSet.get(0)).getPathNumber();
-            masts[leftNodeIndex][rightSetPathNumber] = createMASTFromMatching(heaviestMatching, masts);
+            masts[leftNodePathNumber][rightSetPathNumber] = createMASTFromMatching(heaviestMatching, masts);
         }
 //        application.dispose();
         return searchTree;
@@ -995,18 +1013,15 @@ public class MAST {
         // largest agreement matching
         AgreementMatching largestAgreementMatching;
         if(maxMWeight > largestProperCrossingWeight){
-            List<GraphEdge> whiteEdges = maxM.getAllWhiteEdges();
-            whiteEdges.add(whiteEdge);
-            int numberOfWhiteEdges = maxM.getNumberOfWhiteEdges() + 1;
+            WhiteEdgeSequence whiteEdges = new WhiteEdgeSequence(whiteEdge, maxM.getWhiteEdges());
             int matchingWeight = maxM.getWeight() + whiteEdge.getWhiteWeight();
-            largestAgreementMatching = new AgreementMatching(maxM.getProperCrossing(), whiteEdges, numberOfWhiteEdges, matchingWeight);
+            largestAgreementMatching = new AgreementMatching(maxM.getProperCrossing(), whiteEdges, matchingWeight);
         }
         else if(largestProperCrossing == null) largestAgreementMatching = null;
         else {
-            List<GraphEdge> whiteEdges = new ArrayList<>();
-            whiteEdges.add(whiteEdge);
+            WhiteEdgeSequence whiteEdges = new WhiteEdgeSequence(whiteEdge, null);
             int matchingWeight = largestProperCrossingWeight + whiteEdge.getWhiteWeight();
-            largestAgreementMatching = new AgreementMatching(largestProperCrossing, whiteEdges, 1, matchingWeight);
+            largestAgreementMatching = new AgreementMatching(largestProperCrossing, whiteEdges, matchingWeight);
         }
 
         // add agreement matching to graph
@@ -1193,7 +1208,7 @@ public class MAST {
     }
 
     // Compute MASTs
-    public void computeMASTs(Graph graph, Phylogeny searchTree){
+    public void computeMASTs(Graph graph, Phylogeny searchTree, TreeAndSizePair[][] masts){
         List<PhylogenyNode> rightSet = graph.getRightSet();
 
 
@@ -1204,7 +1219,7 @@ public class MAST {
         stackItems.push(new NodeAndMaxGPair(root.getChildNode1(), rootG));
         stackItems.push(new NodeAndMaxGPair(root.getChildNode2(), rootG));
         int nextLeafIndex = rightSet.size()-1;
-        AgreementMatching heaviestMatchingSoFar;
+        AgreementMatching heaviestMatchingSoFar = null;
         int heaviestMatchingWeightSoFar = 0;
         while (!stackItems.empty()) {
             NodeAndMaxGPair currentPair = stackItems.pop();
@@ -1226,21 +1241,29 @@ public class MAST {
                 int currentRedWeight = currentR == null ? 0 : currentR.getRedWeight();
                 currentMaxGWeight = currentMaxG == null ? 0 : currentMaxG.getGreenWeight();
                 int currentGRWeight = currentMaxGWeight + currentRedWeight;
+                ProperCrossing currentX = currentNodeData.getX();
+                int currentXWeight = currentX.getWeight();
 
                 if(currentMWeight > heaviestMatchingWeightSoFar){
                     heaviestMatchingSoFar = currentM;
                     heaviestMatchingWeightSoFar = currentMWeight;
                 }
                 if(currentYWeight > heaviestMatchingWeightSoFar){
-                    heaviestMatchingSoFar = new AgreementMatching(currentY, null, 0, currentYWeight);
+                    heaviestMatchingSoFar = new AgreementMatching(currentY, null, currentYWeight);
                     heaviestMatchingWeightSoFar = currentYWeight;
                 }
                 if(currentGRWeight > heaviestMatchingWeightSoFar){
-                    heaviestMatchingSoFar = new AgreementMatching(new ProperCrossing(currentMaxG, currentR), null, 0, currentGRWeight);
+                    heaviestMatchingSoFar = new AgreementMatching(new ProperCrossing(currentMaxG, currentR), null, currentGRWeight);
                     heaviestMatchingWeightSoFar = currentGRWeight;
                 }
+                if(currentXWeight > heaviestMatchingWeightSoFar){
+                    heaviestMatchingSoFar = new AgreementMatching(currentX, null, currentXWeight);
+                    heaviestMatchingWeightSoFar = currentXWeight;
+                }
 
-                getMASTNodeDataFromNode(rightSet.get(nextLeafIndex)).setSubtreeMASTSize(heaviestMatchingWeightSoFar);
+                MASTNodeData rightSetNodeData = getMASTNodeDataFromNode(rightSet.get(nextLeafIndex));
+                rightSetNodeData.setSubtreeMAST(createMASTFromMatching(heaviestMatchingSoFar, masts).getTree());
+                rightSetNodeData.setSubtreeMASTSize(heaviestMatchingWeightSoFar);
                 nextLeafIndex--;
             }
             else {
@@ -1268,47 +1291,47 @@ public class MAST {
     }
 
     private TreeAndSizePair createMASTFromMatching(AgreementMatching matching, TreeAndSizePair[][] masts){
-        List<GraphEdge> whiteEdges = matching.getAllWhiteEdges();
-        int numberOfWhiteEdges = matching.getNumberOfWhiteEdges();
+        WhiteEdgeSequence whiteEdges = matching.getWhiteEdges();
         Phylogeny resultTree = new Phylogeny();
         int resultSize = 0;
         PhylogenyNode u_i = new PhylogenyNode();
         resultTree.setRoot(u_i);
-        if (numberOfWhiteEdges > 0){
-            for (int i = numberOfWhiteEdges-1; i >=0; i--) {
-                GraphEdge currentEdge = whiteEdges.get(i);
-                PhylogenyNode rightNode = currentEdge.getRight();
-                PhylogenyNode mapNode = currentEdge.getMapNode();
-                MASTNodeData mastNodeData = getMASTNodeDataFromNode(mapNode);
+        WhiteEdgeSequence currentWhiteEdges = whiteEdges;
+        while (currentWhiteEdges != null) {
+            GraphEdge currentEdge = currentWhiteEdges.getFirstEdge();
+            PhylogenyNode rightNode = currentEdge.getRight();
+            PhylogenyNode mapNode = currentEdge.getMapNode();
+            MASTNodeData mapNodeData = getMASTNodeDataFromNode(mapNode);
 
-                Phylogeny subtreeMAST;
-                int subtreeMASTSize;
-                if(mastNodeData.getT2Node() != rightNode){ // map(i,j) != v_j
-                    subtreeMAST = mastNodeData.getSubtreeMAST();
-                    subtreeMASTSize = mastNodeData.getSubtreeMASTSize();
-                }
-                else {
-                    PhylogenyNode mapNodeFirstChild = mapNode.getChildNode1();
-                    PhylogenyNode mapNodeSecondChild = mapNode.getChildNode2();
-                    PhylogenyNode rightNodeFirstChild = rightNode.getChildNode1();
-
-                    // child is not on the same path as rightNode, i.e. root of N_j
-                    if (rightNodeFirstChild.getLink() != rightNode.getLink()) {
-                        MASTNodeData mapNodeFirstChildData = getMASTNodeDataFromNode(mapNodeFirstChild);
-                        subtreeMAST = mapNodeFirstChildData.getSubtreeMAST();
-                        subtreeMASTSize = mapNodeFirstChildData.getSubtreeMASTSize();
-                    } else {
-                        MASTNodeData mapNodeSecondChildData = getMASTNodeDataFromNode(mapNodeSecondChild);
-                        subtreeMAST = mapNodeSecondChildData.getSubtreeMAST();
-                        subtreeMASTSize = mapNodeSecondChildData.getSubtreeMASTSize();
-                    }
-                }
-                PhylogenyNode u_iLeftChild = new PhylogenyNode();
-                u_i.setChild1(u_iLeftChild);
-                u_i.setChild2(subtreeMAST.getRoot());
-                u_i = u_iLeftChild;
-                resultSize += subtreeMASTSize;
+            Phylogeny subtreeMAST;
+            int subtreeMASTSize;
+            if(mapNodeData.getT2Node() != rightNode){ // map(i,j) != v_j
+                subtreeMAST = mapNodeData.getSubtreeMAST();
+                subtreeMASTSize = mapNodeData.getSubtreeMASTSize();
             }
+            else {
+                PhylogenyNode mapNodeFirstChild = mapNode.getChildNode1();
+                PhylogenyNode mapNodeSecondChild = mapNode.getChildNode2();
+                PhylogenyNode rightNodeFirstChild = rightNode.getChildNode1();
+
+                // child is not on the same path as rightNode, i.e. root of N_j
+                if (rightNodeFirstChild.getLink() != rightNode.getLink()) {
+                    MASTNodeData mapNodeFirstChildData = getMASTNodeDataFromNode(mapNodeFirstChild);
+                    subtreeMAST = mapNodeFirstChildData.getSubtreeMAST();
+                    subtreeMASTSize = mapNodeFirstChildData.getSubtreeMASTSize();
+                } else {
+                    MASTNodeData mapNodeSecondChildData = getMASTNodeDataFromNode(mapNodeSecondChild);
+                    subtreeMAST = mapNodeSecondChildData.getSubtreeMAST();
+                    subtreeMASTSize = mapNodeSecondChildData.getSubtreeMASTSize();
+                }
+            }
+            PhylogenyNode u_iLeftChild = new PhylogenyNode();
+            u_i.setChild1(u_iLeftChild);
+            // TODO: copy tree??
+            u_i.setChild2(subtreeMAST.getRoot());
+            u_i = u_iLeftChild;
+            resultSize += subtreeMASTSize;
+            currentWhiteEdges = currentWhiteEdges.getPreviousEdge();
         }
 
         ProperCrossing properCrossing = matching.getProperCrossing();
@@ -1322,6 +1345,7 @@ public class MAST {
             else {
                 PhylogenyNode mapNode = greenEdge.getMapNode();
                 MASTNodeData mapNodeData = getMASTNodeDataFromNode(mapNode);
+                // TODO: copyTree??
                 greenEdgeSubtree = new TreeAndSizePair(mapNodeData.getSubtreeMAST(), mapNodeData.getSubtreeMASTSize());
             }
         }
@@ -1354,11 +1378,14 @@ public class MAST {
                     n_jPathNumber = rightChildPathNumber;
                 }
             }
-            if(n_jPathNumber == -1){ // Child was not on any path
+            if(n_jPathNumber == -1 || rightNode.isExternal()){ // Child was not on any path
                 redEdgeSubtree = new TreeAndSizePair(createTreeWithOneNode(n_j.getName()), 1);
             }
-            else
-                redEdgeSubtree = masts[leftNodePathNumber][n_jPathNumber];
+            else {
+                TreeAndSizePair redSubtree = masts[leftNodePathNumber][n_jPathNumber];
+                // TODO:  copyTree ??
+                redEdgeSubtree = new TreeAndSizePair(redSubtree.getTree(), redSubtree.getSize());
+            }
         }
         else {
             if(u_i.isRoot())
@@ -1438,4 +1465,39 @@ public class MAST {
             return size;
         }
     }
+    private void updateParentReferences(Phylogeny tree) {
+        PhylogenyNodeIterator phylogenyNodeIterator = tree.iteratorPreorder();
+        while (phylogenyNodeIterator.hasNext()) {
+            PhylogenyNode next = phylogenyNodeIterator.next();
+            List<PhylogenyNode> allDescendants = next.getAllDescendants();
+            if (allDescendants != null) allDescendants.forEach(child -> child.setParent(next));
+        }
+    }
+//    private Phylogeny copyTree(Phylogeny tree){
+//        Phylogeny result = new Phylogeny();
+//
+//        Stack<PhylogenyNodePair> remainingNodes = new Stack<>();
+//        PhylogenyNode root = tree.getRoot();
+//        PhylogenyNode newRoot = new PhylogenyNode();
+//        PhylogenyNodePair rootPair = new PhylogenyNodePair(root, newRoot);
+//        remainingNodes.push(rootPair);
+//
+//        while(!remainingNodes.isEmpty()){
+//            PhylogenyNodePair nodePair = remainingNodes.pop();
+//            PhylogenyNode oldNode = nodePair.firstNode;
+//            PhylogenyNode newNode = nodePair.secondNode;
+//            if(oldNode.isExternal()){
+//                newNode.setName(oldNode.getName());
+//                continue;
+//            }
+//            PhylogenyNode newChild1 = new PhylogenyNode();
+//            PhylogenyNode newChild2 = new PhylogenyNode();
+//            newNode.setChild1(newChild1);
+//            newNode.setChild2(newChild2);
+//            remainingNodes.push(new PhylogenyNodePair(oldNode.getChildNode1(), newChild1));
+//            remainingNodes.push(new PhylogenyNodePair(oldNode.getChildNode2(), newChild2));
+//        }
+//        result.setRoot(newRoot);
+//        return result;
+//    } // TODO: remove
 }

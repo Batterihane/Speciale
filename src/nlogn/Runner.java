@@ -3,6 +3,7 @@ package nlogn;
 import Utilities.DataObjects.GraphNodeData;
 import Utilities.DataObjects.MASTNodeData;
 import Utilities.DataObjects.NodeDataReference;
+import Utilities.ForesterNewickParser;
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
 
@@ -11,7 +12,21 @@ import java.util.List;
 
 public class Runner {
     public static void main(String[] args) {
+        ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
+        Phylogeny tree1 = foresterNewickParser.parseNewickFile("treess\\T1.new");
+        Phylogeny tree2 = foresterNewickParser.parseNewickFile("treess\\T2.new");
 
+        foresterNewickParser.displayPhylogeny(tree1);
+        foresterNewickParser.displayPhylogeny(tree2);
+
+        MAST mastFinder = new MAST();
+        MAST.TreeAndSizePair mast = mastFinder.getMAST(tree1, tree2);
+
+        foresterNewickParser.displayPhylogeny(mast.getTree());
+
+    }
+
+    private static void testLWAM() {
         MAST mastFinder = new MAST();
 
         List<PhylogenyNode> leftSet = createLeftSet(7);
