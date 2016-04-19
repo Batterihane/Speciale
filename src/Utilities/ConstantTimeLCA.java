@@ -17,7 +17,7 @@ public class ConstantTimeLCA {
 
     public static void main(String[] args) {
         ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
-        Phylogeny tree = PhylogenyGenerator.generateTree(30);
+        Phylogeny tree = PhylogenyGenerator.generateRandomTree(30, true);
         foresterNewickParser.displayPhylogeny(tree);
         ConstantTimeLCA lcaFinder = new ConstantTimeLCA(tree);
         PhylogenyNode lca = lcaFinder.getLCA(tree.getNode("50"), tree.getNode("40"));

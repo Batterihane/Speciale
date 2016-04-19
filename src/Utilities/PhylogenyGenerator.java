@@ -1,8 +1,6 @@
 package Utilities;
 
 import n_squared.MAST;
-import org.forester.archaeopteryx.Archaeopteryx;
-import org.forester.io.writers.PhylogenyWriter;
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
 import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
@@ -17,9 +15,9 @@ import java.util.Random;
 public class PhylogenyGenerator {
 
     public static void main(String[] args) {
-        Phylogeny tree1 = generateTree(1000);
+        Phylogeny tree1 = generateRandomTree(1000, true);
 
-        Phylogeny tree2 = generateTree(1000);
+        Phylogeny tree2 = generateRandomTree(1000, false);
         renameTreeLeavesLeftToRight(tree2);
 //        Archaeopteryx.createApplication(tree2);
         MAST mast = new MAST();
@@ -27,7 +25,7 @@ public class PhylogenyGenerator {
         //System.out.println(size);
     }
 
-    public static Phylogeny generateTree(int size){
+    public static Phylogeny generateRandomTree(int size, boolean randomNames){
         Random random = new Random();
 
         List<PhylogenyNode> nodes = new ArrayList<>();
@@ -54,12 +52,13 @@ public class PhylogenyGenerator {
         Phylogeny tree = new Phylogeny();
         tree.setRoot(nodes.get(0));
 
+        if(!randomNames){
+            renameTreeLeavesLeftToRight(tree);
+        }
         return tree;
     }
 
-
-
-    public static void renameTreeLeavesLeftToRight(Phylogeny tree){
+    private static void renameTreeLeavesLeftToRight(Phylogeny tree){
         PhylogenyNodeIterator iterator = tree.iteratorPreorder();
         int i = 0;
         while (iterator.hasNext()){

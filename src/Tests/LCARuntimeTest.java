@@ -17,7 +17,7 @@ public class LCARuntimeTest {
 
     private static void preprocessRuntimeTest() {
         for (int i = 100; i < 50000; i+= 100) {
-            Phylogeny tree = PhylogenyGenerator.generateTree(i);
+            Phylogeny tree = PhylogenyGenerator.generateRandomTree(i, true);
             addNodeDataReferences(tree);
             long time = System.currentTimeMillis();
             ConstantTimeLCA lcaFinder = new ConstantTimeLCA(tree);
@@ -28,7 +28,7 @@ public class LCARuntimeTest {
 
     private static void runtimeTest() {
         for (int i = 100; i < 20000; i+= 100) {
-            Phylogeny tree = PhylogenyGenerator.generateTree(i);
+            Phylogeny tree = PhylogenyGenerator.generateRandomTree(i, true);
             addNodeDataReferences(tree);
             PhylogenyNode node1 = tree.getNode("Leaf_0");
             PhylogenyNode node2 = tree.getNode("Leaf_10");

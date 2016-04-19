@@ -14,7 +14,7 @@ import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
 public class LCACorrectnessTest {
     public static void main(String[] args) {
         for (int i = 0; i < 1000; i++) {
-            Phylogeny tree = PhylogenyGenerator.generateTree(1000);
+            Phylogeny tree = PhylogenyGenerator.generateRandomTree(1000, true);
             addNodeDataReferences(tree);
 
             PhylogenyNode node1 = tree.getNode("Leaf_0");

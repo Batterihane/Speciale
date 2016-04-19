@@ -1,6 +1,5 @@
 package Tests;
 
-import Utilities.ForesterNewickParser;
 import Utilities.PhylogenyGenerator;
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
@@ -15,7 +14,7 @@ public class PhylogenyTest {
 
     private static void getAllExternalDescendantsRuntimeTest() {
         for (int i = 100; i < 50000; i+= 100) {
-            Phylogeny tree = PhylogenyGenerator.generateTree(i);
+            Phylogeny tree = PhylogenyGenerator.generateRandomTree(i, true);
             PhylogenyNode root = tree.getRoot();
             long time = System.nanoTime();
             root.getAllExternalDescendants();
@@ -46,7 +45,7 @@ public class PhylogenyTest {
 //
 //        System.out.println("Root has " + root.getNumberOfExternalNodes() + " external nodes");
 //
-//        Phylogeny tree2 = PhylogenyGenerator.generateTree(10);
+//        Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(10);
 //        System.out.println("Root2 has " + tree2.getRoot().getNumberOfExternalNodes() + " external nodes");
 //
 //        ForesterNewickParser foresterNewickParser = new ForesterNewickParser();

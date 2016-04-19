@@ -3,11 +3,6 @@ package naive;
 import Utilities.ForesterNewickParser;
 import Utilities.PhylogenyGenerator;
 import org.forester.phylogeny.Phylogeny;
-import org.forester.phylogeny.PhylogenyNode;
-
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.List;
 
 /**
  * Created by Thomas on 01-03-2016.
@@ -17,8 +12,8 @@ public class Runner {
     public static void main(String[] args) {
         ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
 
-        Phylogeny tree1 = PhylogenyGenerator.generateTree(10);
-        Phylogeny tree2 = PhylogenyGenerator.generateTree(10);
+        Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(10, true);
+        Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(10, false);
         foresterNewickParser.displayPhylogeny(tree1);
         foresterNewickParser.displayPhylogeny(tree2);
 

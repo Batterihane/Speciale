@@ -21,7 +21,7 @@ public class SubtreeProcessor {
 
     public static void main(String[] args) {
         ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
-        Phylogeny tree = PhylogenyGenerator.generateTree(10);
+        Phylogeny tree = PhylogenyGenerator.generateRandomTree(10, true);
         ArrayList<PhylogenyNode> nodes = new ArrayList<>();
         PhylogenyNode firstExternalNode = tree.getFirstExternalNode();
         nodes.add(firstExternalNode);

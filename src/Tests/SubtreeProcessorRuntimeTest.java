@@ -7,7 +7,6 @@ import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
 import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -18,7 +17,7 @@ public class SubtreeProcessorRuntimeTest {
 
     public static void main(String[] args) {
         for (int i = 100; i < 10000; i+= 100) {
-            Phylogeny tree = PhylogenyGenerator.generateTree(i);
+            Phylogeny tree = PhylogenyGenerator.generateRandomTree(i, true);
             addNodeDataReferences(tree);
             List<PhylogenyNode> leaves = tree.getRoot().getAllExternalDescendants();
             Random random = new Random();

@@ -5,10 +5,6 @@ import nlogn.MAST;
 import org.forester.archaeopteryx.Archaeopteryx;
 import org.forester.archaeopteryx.MainFrame;
 import org.forester.phylogeny.Phylogeny;
-import org.forester.phylogeny.PhylogenyNode;
-import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
-
-import java.util.List;
 
 /**
  * Created by Thomas on 24-03-2016.
@@ -20,10 +16,9 @@ public class MASTCorrectnessTest {
 
     private static void nLognVsNSquared() {
         for (int i = 10; i < 10000; i+= 10) {
-            Phylogeny tree1 = PhylogenyGenerator.generateTree(i);
-            Phylogeny tree2 = PhylogenyGenerator.generateTree(i);
+            Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(i, true);
+            Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(i, false);
 
-            PhylogenyGenerator.renameTreeLeavesLeftToRight(tree2);
             MAST nLogNMastFinder = new MAST();
             n_squared.MAST nSquaredMastFinder = new n_squared.MAST();
             MAST.TreeAndSizePair nLogNTreeAndSize = nLogNMastFinder.getMAST(tree1, tree2);
@@ -43,8 +38,8 @@ public class MASTCorrectnessTest {
                 return;
             }
 
-            MainFrame application = Archaeopteryx.createApplication(nLogNMast);
-            application.dispose();
+//            MainFrame application = Archaeopteryx.createApplication(nLogNMast);
+//            application.dispose();
 
             System.out.println(i + ": Success!");
 
@@ -53,10 +48,9 @@ public class MASTCorrectnessTest {
 
     private static void nLognVsNSquaredConstantSize(int size) {
         while (true) {
-            Phylogeny tree1 = PhylogenyGenerator.generateTree(size);
-            Phylogeny tree2 = PhylogenyGenerator.generateTree(size);
+            Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(size, true);
+            Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(size, false);
 
-            PhylogenyGenerator.renameTreeLeavesLeftToRight(tree2);
             MAST nLogNMastFinder = new MAST();
             n_squared.MAST nSquaredMastFinder = new n_squared.MAST();
             MAST.TreeAndSizePair nLogNTreeAndSize = nLogNMastFinder.getMAST(tree1, tree2);

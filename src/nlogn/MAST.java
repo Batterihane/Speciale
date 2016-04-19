@@ -21,9 +21,8 @@ public class MAST {
         ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
 //        Phylogeny tree = foresterNewickParser.parseNewickFile("treess\\Tree2.new");
 
-        Phylogeny tree1 = PhylogenyGenerator.generateTree(5);
-        Phylogeny tree2 = PhylogenyGenerator.generateTree(5);
-        PhylogenyGenerator.renameTreeLeavesLeftToRight(tree2);
+        Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(5, true);
+        Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(5, false);
         MAST mast = new MAST();
 //        List<PhylogenyNode> firstDecomposition = mast.computeFirstDecomposition(tree);
 //        for (PhylogenyNode node : firstDecomposition){
@@ -54,7 +53,6 @@ public class MAST {
             MASTNodeData tree2RootData = getMASTNodeDataFromNode(tree2.getRoot());
             tree2RootData.setSubtreeMAST(tree2);
             tree2RootData.setSubtreeMASTSize(1);
-//            return 1;
             return new TreeAndSizePair(tree1, 1);
         }
         // base case for test
@@ -75,7 +73,6 @@ public class MAST {
             tree2RootData.setSubtreeMAST(tree2);
             tree2RootData.setSubtreeMASTSize(2);
 
-//            return 2;
             return new TreeAndSizePair(tree1, 2);
         }
 
@@ -94,11 +91,6 @@ public class MAST {
 
         TreeAndSizePair mast = createGraphsAndComputeMAST(tree1Decomposition, tree2Decomposition, siSubtrees);
 
-        // Set MAST for leaves in T2
-
-
-//        throw new NotImplementedException();
-//        updateParentReferences(mast.getTree()); // TODO: remove
         return mast;
     }
 
@@ -247,25 +239,24 @@ public class MAST {
     }
     private int[] getLisNumbersFromLeaves(PhylogenyNode[] tree2LeavesTopDown) {
         int[] numbers = new int[tree2LeavesTopDown.length];
-        for (int i = 0 ; i < tree2LeavesTopDown.length-2 ; i++){
+        for (int i = 0 ; i < tree2LeavesTopDown.length ; i++){
             PhylogenyNode currentLeaf = tree2LeavesTopDown[i];
             MASTNodeData mastNodeData = getMASTNodeDataFromNode(currentLeaf);
             numbers[i] = mastNodeData.getLisNumber();
         }
 
-        //TODO: remove all this
-        PhylogenyNode secondLastLeaf = tree2LeavesTopDown[tree2LeavesTopDown.length-2];
-        PhylogenyNode lastLeaf = tree2LeavesTopDown[tree2LeavesTopDown.length-1];
-        int secondLastLisNumber = getMASTNodeDataFromNode(secondLastLeaf).getLisNumber();
-        int lastLisNumber = getMASTNodeDataFromNode(lastLeaf).getLisNumber();
-        if(secondLastLisNumber < lastLisNumber){
-            numbers[tree2LeavesTopDown.length-2] = secondLastLisNumber;
-            numbers[tree2LeavesTopDown.length-1] = lastLisNumber;
-        }
-        else {
-            numbers[tree2LeavesTopDown.length-2] = lastLisNumber;
-            numbers[tree2LeavesTopDown.length-1] = secondLastLisNumber;
-        }
+//        PhylogenyNode secondLastLeaf = tree2LeavesTopDown[tree2LeavesTopDown.length-2];
+//        PhylogenyNode lastLeaf = tree2LeavesTopDown[tree2LeavesTopDown.length-1];
+//        int secondLastLisNumber = getMASTNodeDataFromNode(secondLastLeaf).getLisNumber();
+//        int lastLisNumber = getMASTNodeDataFromNode(lastLeaf).getLisNumber();
+//        if(secondLastLisNumber < lastLisNumber){
+//            numbers[tree2LeavesTopDown.length-2] = secondLastLisNumber;
+//            numbers[tree2LeavesTopDown.length-1] = lastLisNumber;
+//        }
+//        else {
+//            numbers[tree2LeavesTopDown.length-2] = lastLisNumber;
+//            numbers[tree2LeavesTopDown.length-1] = secondLastLisNumber;
+//        }
         return numbers;
     }
     private PhylogenyNode[] getLeavesTopDown(Phylogeny tree) {
@@ -546,7 +537,7 @@ public class MAST {
         int xWeight = rootX == null ? 0 : rootX.getWeight();
         int rWeight = rootR == null ? 0 : rootR.getRedWeight();
 
-        AgreementMatching heaviestMatching = null;
+        AgreementMatching heaviestMatching;
         int heaviestMatchingWeight;
         if(mWeight > xWeight && mWeight > rWeight){
             heaviestMatching = rootM;
@@ -1473,31 +1464,4 @@ public class MAST {
             if (allDescendants != null) allDescendants.forEach(child -> child.setParent(next));
         }
     }
-//    private Phylogeny copyTree(Phylogeny tree){
-//        Phylogeny result = new Phylogeny();
-//
-//        Stack<PhylogenyNodePair> remainingNodes = new Stack<>();
-//        PhylogenyNode root = tree.getRoot();
-//        PhylogenyNode newRoot = new PhylogenyNode();
-//        PhylogenyNodePair rootPair = new PhylogenyNodePair(root, newRoot);
-//        remainingNodes.push(rootPair);
-//
-//        while(!remainingNodes.isEmpty()){
-//            PhylogenyNodePair nodePair = remainingNodes.pop();
-//            PhylogenyNode oldNode = nodePair.firstNode;
-//            PhylogenyNode newNode = nodePair.secondNode;
-//            if(oldNode.isExternal()){
-//                newNode.setName(oldNode.getName());
-//                continue;
-//            }
-//            PhylogenyNode newChild1 = new PhylogenyNode();
-//            PhylogenyNode newChild2 = new PhylogenyNode();
-//            newNode.setChild1(newChild1);
-//            newNode.setChild2(newChild2);
-//            remainingNodes.push(new PhylogenyNodePair(oldNode.getChildNode1(), newChild1));
-//            remainingNodes.push(new PhylogenyNodePair(oldNode.getChildNode2(), newChild2));
-//        }
-//        result.setRoot(newRoot);
-//        return result;
-//    } // TODO: remove
 }

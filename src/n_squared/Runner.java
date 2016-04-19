@@ -11,13 +11,13 @@ public class Runner {
 
 //        Phylogeny tree1 = foresterNewickParser.parseNewickFile("treess\\Tree1.new");
 //        Phylogeny tree2 = foresterNewickParser.parseNewickFile("treess\\Tree4.new");
-        //Phylogeny tree1 = PhylogenyGenerator.generateTree(10);
-        //Phylogeny tree2 = PhylogenyGenerator.generateTree(10);
+        //Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(10);
+        //Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(10);
         //foresterNewickParser.displayPhylogeny(tree1);
         //foresterNewickParser.displayPhylogeny(tree2);
 
         for (int i = 100; i < 200000; i+=100) {
-            Phylogeny tree = PhylogenyGenerator.generateTree(i);
+            Phylogeny tree = PhylogenyGenerator.generateRandomTree(i, true);
             long start = System.currentTimeMillis();
             PhylogenyNodeIterator phylogenyNodeIterator = tree.iteratorPostorder();
             while(phylogenyNodeIterator.hasNext()){

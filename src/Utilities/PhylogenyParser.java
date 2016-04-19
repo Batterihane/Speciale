@@ -26,7 +26,7 @@ public class PhylogenyParser {
         ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
         PhylogenyParser phylogenyParser = new PhylogenyParser();
 
-        Phylogeny phylogeny1 = PhylogenyGenerator.generateTree(2000);
+        Phylogeny phylogeny1 = PhylogenyGenerator.generateRandomTree(2000, true);
         phylogenyParser.toNewick(phylogeny1, "bigOne", true);
 
         //Phylogeny phylogeny2 = foresterNewickParser.parseNewickFile("trees\\random\\something.new");
