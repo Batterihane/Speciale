@@ -18,6 +18,9 @@ import java.util.Stack;
 public class MAST {
 
     public static void main(String[] args) {
+
+
+
         ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
 //        Phylogeny tree = foresterNewickParser.parseNewickFile("treess\\Tree2.new");
 

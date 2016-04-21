@@ -2,11 +2,19 @@ package n_squared;
 
 import Utilities.ForesterNewickParser;
 import Utilities.PhylogenyGenerator;
+import org.forester.archaeopteryx.Archaeopteryx;
+import org.forester.archaeopteryx.MainFrame;
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
 
 public class Runner {
     public static void main(String[] args) {
+
+
+        backTrackTest();
+        System.exit(0);
+
+
         ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
 
 //        Phylogeny tree1 = foresterNewickParser.parseNewickFile("treess\\Tree1.new");
@@ -41,5 +49,36 @@ public class Runner {
 
 
 
+    }
+    private static void backTrackTest() {
+        for (int i = 10; i < 10000; i+= 10) {
+            Phylogeny tree1 = PhylogenyGenerator.generateTree(i);
+            Phylogeny tree2 = PhylogenyGenerator.generateTree(i);
+
+            PhylogenyGenerator.renameTreeLeavesLeftToRight(tree2);
+            n_squared.MAST nSquaredMastFinder = new n_squared.MAST();
+//            int nLogNMastSize = nLogNMastFinder.getMAST(tree1, tree2).getNumberOfExternalNodes();
+            Phylogeny nSquaredMast = nSquaredMastFinder.getMAST(tree1, tree2);
+            int nSquaredMastSize = nSquaredMast.getNumberOfExternalNodes();
+
+            Phylogeny backTrackMast = nSquaredMastFinder.getMastBackTrack(tree1, tree2);
+            int backTrackSize = backTrackMast.getNumberOfExternalNodes();
+
+            if(backTrackSize != nSquaredMastSize){
+                Archaeopteryx.createApplication(tree1);
+                Archaeopteryx.createApplication(tree2);
+                Archaeopteryx.createApplication(backTrackMast);
+                Archaeopteryx.createApplication(nSquaredMast);
+
+                System.out.println(i + ": Failure - BackTrack(" + backTrackSize + "), nsquared(" + nSquaredMastSize + ")");
+                return;
+            }
+
+            MainFrame application = Archaeopteryx.createApplication(backTrackMast);
+            application.dispose();
+
+            System.out.println(i + ": Success!");
+
+        }
     }
 }

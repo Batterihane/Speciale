@@ -21,7 +21,7 @@ public class ForesterNewickParser {
     public static void main(String[] args) throws IOException {
         ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
 
-        Phylogeny tree = foresterNewickParser.parseNewickFile("trees\\89_Adeno_E3_CR1.new");
+        Phylogeny tree = foresterNewickParser.parseNewickFile("treess\\test.new");
         foresterNewickParser.displayPhylogeny(tree);
     }
 
