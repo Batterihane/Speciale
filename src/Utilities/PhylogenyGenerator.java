@@ -70,7 +70,7 @@ public class PhylogenyGenerator {
         }
     }
 
-    public static Phylogeny generateBaseCaseTree(int size){
+    public static Phylogeny generateBaseCaseTree(int size, boolean randomNames){
         Random random = new Random();
 
         List<PhylogenyNode> nodes = new ArrayList<>();
@@ -95,6 +95,10 @@ public class PhylogenyGenerator {
         }
         currentNode.setChild1(nodes.get(0));
         currentNode.setChild2(nodes.get(1));
+
+        if(!randomNames){
+            renameTreeLeavesLeftToRight(tree);
+        }
         return tree;
     }
 

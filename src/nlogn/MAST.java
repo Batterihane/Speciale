@@ -18,23 +18,10 @@ import java.util.Stack;
 public class MAST {
 
     public static void main(String[] args) {
-
-
-
-        ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
-//        Phylogeny tree = foresterNewickParser.parseNewickFile("treess\\Tree2.new");
-
-        Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(5, true);
-        Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(5, false);
+        Phylogeny tree1 = PhylogenyGenerator.generateBaseCaseTree(10, false);
+        Phylogeny tree2 = PhylogenyGenerator.generateBaseCaseTree(10, false);
         MAST mast = new MAST();
-//        List<PhylogenyNode> firstDecomposition = mast.computeFirstDecomposition(tree);
-//        for (PhylogenyNode node : firstDecomposition){
-//            System.out.println(node.getName());
-//        }
-        foresterNewickParser.displayPhylogeny(tree1);
-        foresterNewickParser.displayPhylogeny(tree2);
-//        System.out.println(mast.getMAST(tree1, tree2));
-        foresterNewickParser.displayPhylogeny(mast.getMAST(tree1, tree2).getTree());
+        mast.getMAST(tree1, tree2);
     }
 
     public TreeAndSizePair getMAST(Phylogeny tree1, Phylogeny tree2){
@@ -85,10 +72,14 @@ public class MAST {
 
         // lis base case
 //        if(tree1Decomposition.size() == numberOfLeaves && tree2Decomposition.size() == 1){
-//            return baseCaseModified(tree2, tree1);
+//            return baseCaseModified(tree1, tree2);
 //        }
 
+//        long time = System.nanoTime();
         List<Phylogeny> siSubtrees = induceSubtrees(tree1Decomposition, tree1, tree2);
+//        if(numberOfLeaves > 500)
+//            System.out.println(numberOfLeaves + "\t" + (int)((System.nanoTime() - time) / numberOfLeaves));
+//            System.out.println(numberOfLeaves + "\t" + (int)((System.nanoTime() - time) / (numberOfLeaves * (Math.log(numberOfLeaves) / Math.log(2)))));
 
         computeMiSiMASTs(tree1Decomposition, siSubtrees);
 
@@ -214,6 +205,11 @@ public class MAST {
             }
         }
 
+        Phylogeny tree = createTreeFromLIS(lis, tree2LeavesBottomUp);
+
+        return tree;
+    }
+    private Phylogeny createTreeFromLIS(int[] lis, PhylogenyNode[] tree2LeavesBottomUp) {
         int i = 0;
         Phylogeny tree = new Phylogeny();
         PhylogenyNode currentBottomMostNode = new PhylogenyNode();
@@ -237,7 +233,6 @@ public class MAST {
                 }
             }
         }
-
         return tree;
     }
     private int[] getLisNumbersFromLeaves(PhylogenyNode[] tree2LeavesTopDown) {

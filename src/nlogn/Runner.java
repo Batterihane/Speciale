@@ -4,26 +4,58 @@ import Utilities.DataObjects.GraphNodeData;
 import Utilities.DataObjects.MASTNodeData;
 import Utilities.DataObjects.NodeDataReference;
 import Utilities.ForesterNewickParser;
+import org.forester.archaeopteryx.Archaeopteryx;
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
+import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Runner {
     public static void main(String[] args) {
+        Phylogeny mast = getMASTFromNewickFiles("treess\\T1.new", "treess\\T2.new");
+        Archaeopteryx.createApplication(mast);
+    }
+
+    private static Phylogeny getMASTFromNewickFiles(String tree1Path, String tree2Path){
         ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
         Phylogeny tree1 = foresterNewickParser.parseNewickFile("treess\\T1.new");
         Phylogeny tree2 = foresterNewickParser.parseNewickFile("treess\\T2.new");
 
-        foresterNewickParser.displayPhylogeny(tree1);
-        foresterNewickParser.displayPhylogeny(tree2);
+        Map<String, Integer> namesToNumbers = new HashMap<>();
+        List<String> numbersToNames = new ArrayList<>();
+
+        // Change names to numbers
+        PhylogenyNodeIterator tree2LeafIterator = tree2.iteratorExternalForward();
+        for (int i = 0 ; tree2LeafIterator.hasNext() ; i++){
+            PhylogenyNode currentLeaf = tree2LeafIterator.next();
+            String name = currentLeaf.getName();
+            namesToNumbers.put(name, i);
+            numbersToNames.add(name);
+            currentLeaf.setName(i + "");
+        }
+        PhylogenyNodeIterator tree1LeafIterator = tree1.iteratorExternalForward();
+        while (tree1LeafIterator.hasNext()){
+            PhylogenyNode currentLeaf = tree1LeafIterator.next();
+            String name = currentLeaf.getName();
+            currentLeaf.setName(namesToNumbers.get(name) + "");
+        }
 
         MAST mastFinder = new MAST();
-        MAST.TreeAndSizePair mast = mastFinder.getMAST(tree1, tree2);
+        MAST.TreeAndSizePair mastPair = mastFinder.getMAST(tree1, tree2);
 
-        foresterNewickParser.displayPhylogeny(mast.getTree());
+        Phylogeny mast = mastPair.getTree();
+        PhylogenyNodeIterator mastLeafIterator = mast.iteratorExternalForward();
+        while (mastLeafIterator.hasNext()){
+            PhylogenyNode currentLeaf = mastLeafIterator.next();
+            int number = Integer.parseInt(currentLeaf.getName());
+            currentLeaf.setName(numbersToNames.get(number));
+        }
 
+        return mast;
     }
 
     private static void testLWAM() {
