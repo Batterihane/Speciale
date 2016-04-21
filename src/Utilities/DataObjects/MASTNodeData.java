@@ -1,12 +1,10 @@
 package Utilities.DataObjects;
 
+import nlogn.AgreementMatching;
 import nlogn.Graph;
-import nlogn.GraphEdge;
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
 import org.forester.phylogeny.data.Reference;
-
-import java.util.List;
 
 /**
  * Created by Thomas on 11-03-2016.
@@ -18,7 +16,7 @@ public class MASTNodeData extends Reference {
     private int pathNumber = -1; // for node u_i in pi: i, for topmost node v in pi(x_j): j
     private PhylogenyNode twin; // for all leaves
     private Graph graph; // only for nodes in T2 at the beginning of a centroid path
-    private Phylogeny subtreeMAST; // MAST(T1, T2(y)) for node y
+    private Phylogeny subtreeLWAM; // LWAM(T1, T2(y)) for node y
     private int subtreeMASTSize; // size of MAST(T1, T2(y)) for node y
     private PhylogenyNode siNode; // reference to corresponding si node - only for nodes in T2
     private PhylogenyNode t2Node; // reference from si node to corresponding t2 node
@@ -55,12 +53,12 @@ public class MASTNodeData extends Reference {
         this.lisNumber = lisNumber;
     }
 
-    public Phylogeny getSubtreeMAST() {
-        return subtreeMAST;
+    public Phylogeny getSubtreeLWAM() {
+        return subtreeLWAM;
     }
 
-    public void setSubtreeMAST(Phylogeny subtreeMAST) {
-        this.subtreeMAST = subtreeMAST;
+    public void setSubtreeLWAM(Phylogeny subtreeLWAM) {
+        this.subtreeLWAM = subtreeLWAM;
     }
 
     public int getSubtreeMASTSize() {

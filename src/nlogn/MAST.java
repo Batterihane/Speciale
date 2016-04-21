@@ -41,7 +41,7 @@ public class MAST {
         // simple base case
         if(numberOfLeaves == 1){
             MASTNodeData tree2RootData = getMASTNodeDataFromNode(tree2.getRoot());
-            tree2RootData.setSubtreeMAST(tree2);
+            tree2RootData.setSubtreeLWAM(tree2);
             tree2RootData.setSubtreeMASTSize(1);
             return new TreeAndSizePair(tree1, 1);
         }
@@ -50,17 +50,17 @@ public class MAST {
             PhylogenyNode tree2LeftChild = tree2.getRoot().getChildNode1();
             MASTNodeData tree2LeftChildData = getMASTNodeDataFromNode(tree2LeftChild);
             Phylogeny tree = createTreeWithOneNode(tree2LeftChild.getName());
-            tree2LeftChildData.setSubtreeMAST(tree);
+            tree2LeftChildData.setSubtreeLWAM(tree);
             tree2LeftChildData.setSubtreeMASTSize(1);
 
             PhylogenyNode tree2RightChild = tree2.getRoot().getChildNode2();
             MASTNodeData tree2RightChildData = getMASTNodeDataFromNode(tree2RightChild);
             tree = createTreeWithOneNode(tree2RightChild.getName());
-            tree2RightChildData.setSubtreeMAST(tree);
+            tree2RightChildData.setSubtreeLWAM(tree);
             getMASTNodeDataFromNode(tree2.getRoot().getChildNode2()).setSubtreeMASTSize(1);
 
             MASTNodeData tree2RootData = getMASTNodeDataFromNode(tree2.getRoot());
-            tree2RootData.setSubtreeMAST(tree2);
+            tree2RootData.setSubtreeLWAM(tree2);
             tree2RootData.setSubtreeMASTSize(2);
 
             return new TreeAndSizePair(tree1, 2);
@@ -324,7 +324,7 @@ public class MAST {
                     if(!secondChild.isExternal()) remainingStartNodes.push(secondChild);
                     else {
                         MASTNodeData secondChildData = getMASTNodeDataFromNode(secondChild);
-                        secondChildData.setSubtreeMAST(createTreeWithOneNode(secondChild.getName()));
+                        secondChildData.setSubtreeLWAM(createTreeWithOneNode(secondChild.getName()));
                         secondChildData.setSubtreeMASTSize(1);
                     }
                 }
@@ -333,7 +333,7 @@ public class MAST {
                     if(!firstChild.isExternal()) remainingStartNodes.push(firstChild);
                     else {
                         MASTNodeData firstChildData = getMASTNodeDataFromNode(firstChild);
-                        firstChildData.setSubtreeMAST(createTreeWithOneNode(firstChild.getName()));
+                        firstChildData.setSubtreeLWAM(createTreeWithOneNode(firstChild.getName()));
                         firstChildData.setSubtreeMASTSize(1);
                     }
                 }
@@ -519,13 +519,13 @@ public class MAST {
         setPathNumbers(tree1Decomposition, tree2Decomposition);
 
         Phylogeny searchTree = null;
-        // masts[i,j] = MAST(T1(x),T2(y)) where x is the i'th node of pi and y is the j'th node of X
-        TreeAndSizePair[][] masts = new TreeAndSizePair[tree1Decomposition.size()][tree2Decomposition.size()];
+        // lwams[i,j] = LWAM(T1(x),T2(y)) where x is the i'th node of pi and y is the j'th node of X
+        AgreementMatching[][] lwams = new AgreementMatching[tree1Decomposition.size()][tree2Decomposition.size()];
         for (int i = graphs.length-1; i >= 0; i--) {
             Graph graph = graphs[i];
-            setGraphEdgesWeights(graph, masts);
-            searchTree = computeLWAMsAndMastSizes(graph, masts);
-            computeMASTs(graph, searchTree, masts);
+            setGraphEdgesWeights(graph, lwams);
+            searchTree = computeLWAMsAndMastSizes(graph, lwams);
+            computeMASTs(graph, searchTree, lwams);
         }
         SearchTreeNodeData rootData = getSearchTreeNodeData(searchTree.getRoot());
         AgreementMatching rootM = rootData.getM();
@@ -550,7 +550,7 @@ public class MAST {
             heaviestMatchingWeight = rWeight;
         }
 
-        TreeAndSizePair result = createMASTFromMatching(heaviestMatching, masts);
+        TreeAndSizePair result = createMASTFromMatching(heaviestMatching, lwams);
         return result;
     }
     private Graph[] findAndAddGraphEdges(List<PhylogenyNode> tree1Decomposition, List<List<PhylogenyNode>> tree2Decomposition, List<Phylogeny> siSubtrees) {
@@ -642,7 +642,7 @@ public class MAST {
             getMASTNodeDataFromNode(node).setPathNumber(i);
         }
     }
-    private void setGraphEdgesWeights(Graph graph, TreeAndSizePair[][] masts){
+    private void setGraphEdgesWeights(Graph graph, AgreementMatching[][] lwams){
         for(GraphEdge edge : graph.getEdges()){
             PhylogenyNode leftNode = edge.getLeft();
             PhylogenyNode rightNode = edge.getRight();
@@ -661,7 +661,7 @@ public class MAST {
             int greenWeight = getMASTNodeDataFromNode(mapNode).getSubtreeMASTSize();
             edge.setGreenWeight(greenWeight);
 
-            int redWeight = computeRedWeight(leftNode, rightNode, masts);
+            int redWeight = computeRedWeight(leftNode, rightNode, lwams);
             edge.setRedWeight(redWeight);
 
         }
@@ -686,7 +686,7 @@ public class MAST {
         }
         return whiteWeight;
     }
-    private int computeRedWeight(PhylogenyNode leftNode, PhylogenyNode rightNode, TreeAndSizePair[][] masts) {
+    private int computeRedWeight(PhylogenyNode leftNode, PhylogenyNode rightNode, AgreementMatching[][] lwams) {
         PhylogenyNode rightNodeFirstChild = rightNode.getChildNode1();
         PhylogenyNode rightNodeSecondChild = rightNode.getChildNode2();
         PhylogenyNode n_jRoot;
@@ -697,11 +697,11 @@ public class MAST {
         if(n_jRoot.isExternal()) return 1;
         int leftNodePathNumber = getMASTNodeDataFromNode(leftNode).getPathNumber();
         int n_jRootPathNumber = getMASTNodeDataFromNode(n_jRoot).getPathNumber();
-        return masts[leftNodePathNumber][n_jRootPathNumber].getSize();
+        return lwams[leftNodePathNumber][n_jRootPathNumber].getWeight();
     }
 
     // Compute largest weight agreement matchings
-    public Phylogeny computeLWAMsAndMastSizes(Graph graph, TreeAndSizePair[][] masts) {
+    public Phylogeny computeLWAMsAndMastSizes(Graph graph, AgreementMatching[][] lwams) {
 //        System.out.println("\n\n\n");
         List<PhylogenyNode> leftSet = graph.getLeftSet();
 //        System.out.println("Left set:");
@@ -830,7 +830,7 @@ public class MAST {
             }
             int leftNodePathNumber = getMASTNodeDataFromNode(leftNode).getPathNumber();
             int rightSetPathNumber = getMASTNodeDataFromNode(rightSet.get(0)).getPathNumber();
-            masts[leftNodePathNumber][rightSetPathNumber] = createMASTFromMatching(heaviestMatching, masts);
+            lwams[leftNodePathNumber][rightSetPathNumber] = heaviestMatching;
         }
 //        application.dispose();
         return searchTree;
@@ -1197,7 +1197,7 @@ public class MAST {
     }
 
     // Compute MASTs
-    public void computeMASTs(Graph graph, Phylogeny searchTree, TreeAndSizePair[][] masts){
+    public void computeMASTs(Graph graph, Phylogeny searchTree, AgreementMatching[][] lwams){
         List<PhylogenyNode> rightSet = graph.getRightSet();
 
 
@@ -1251,7 +1251,7 @@ public class MAST {
                 }
 
                 MASTNodeData rightSetNodeData = getMASTNodeDataFromNode(rightSet.get(nextLeafIndex));
-                rightSetNodeData.setSubtreeMAST(createMASTFromMatching(heaviestMatchingSoFar, masts).getTree());
+                rightSetNodeData.setSubtreeLWAM(createMASTFromMatching(heaviestMatchingSoFar, lwams).getTree());
                 rightSetNodeData.setSubtreeMASTSize(heaviestMatchingWeightSoFar);
                 nextLeafIndex--;
             }
@@ -1279,7 +1279,7 @@ public class MAST {
         }
     }
 
-    private TreeAndSizePair createMASTFromMatching(AgreementMatching matching, TreeAndSizePair[][] masts){
+    private TreeAndSizePair createMASTFromMatching(AgreementMatching matching, AgreementMatching[][] lwams){
         WhiteEdgeSequence whiteEdges = matching.getWhiteEdges();
         Phylogeny resultTree = new Phylogeny();
         int resultSize = 0;
@@ -1295,7 +1295,7 @@ public class MAST {
             Phylogeny subtreeMAST;
             int subtreeMASTSize;
             if(mapNodeData.getT2Node() != rightNode){ // map(i,j) != v_j
-                subtreeMAST = mapNodeData.getSubtreeMAST();
+                subtreeMAST = mapNodeData.getSubtreeLWAM();
                 subtreeMASTSize = mapNodeData.getSubtreeMASTSize();
             }
             else {
@@ -1306,11 +1306,11 @@ public class MAST {
                 // child is not on the same path as rightNode, i.e. root of N_j
                 if (rightNodeFirstChild.getLink() != rightNode.getLink()) {
                     MASTNodeData mapNodeFirstChildData = getMASTNodeDataFromNode(mapNodeFirstChild);
-                    subtreeMAST = mapNodeFirstChildData.getSubtreeMAST();
+                    subtreeMAST = mapNodeFirstChildData.getSubtreeLWAM();
                     subtreeMASTSize = mapNodeFirstChildData.getSubtreeMASTSize();
                 } else {
                     MASTNodeData mapNodeSecondChildData = getMASTNodeDataFromNode(mapNodeSecondChild);
-                    subtreeMAST = mapNodeSecondChildData.getSubtreeMAST();
+                    subtreeMAST = mapNodeSecondChildData.getSubtreeLWAM();
                     subtreeMASTSize = mapNodeSecondChildData.getSubtreeMASTSize();
                 }
             }
@@ -1335,7 +1335,7 @@ public class MAST {
                 PhylogenyNode mapNode = greenEdge.getMapNode();
                 MASTNodeData mapNodeData = getMASTNodeDataFromNode(mapNode);
                 // TODO: copyTree??
-                greenEdgeSubtree = new TreeAndSizePair(mapNodeData.getSubtreeMAST(), mapNodeData.getSubtreeMASTSize());
+                greenEdgeSubtree = new TreeAndSizePair(mapNodeData.getSubtreeLWAM(), mapNodeData.getSubtreeMASTSize());
             }
         }
         GraphEdge redEdge = properCrossing.getRedEdge();
@@ -1371,7 +1371,7 @@ public class MAST {
                 redEdgeSubtree = new TreeAndSizePair(createTreeWithOneNode(n_j.getName()), 1);
             }
             else {
-                TreeAndSizePair redSubtree = masts[leftNodePathNumber][n_jPathNumber];
+                TreeAndSizePair redSubtree = createMASTFromMatching(lwams[leftNodePathNumber][n_jPathNumber], lwams);
                 // TODO:  copyTree ??
                 redEdgeSubtree = new TreeAndSizePair(redSubtree.getTree(), redSubtree.getSize());
             }

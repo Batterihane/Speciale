@@ -52,10 +52,9 @@ public class Runner {
     }
     private static void backTrackTest() {
         for (int i = 10; i < 10000; i+= 10) {
-            Phylogeny tree1 = PhylogenyGenerator.generateTree(i);
-            Phylogeny tree2 = PhylogenyGenerator.generateTree(i);
+            Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(i, true);
+            Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(i, false);
 
-            PhylogenyGenerator.renameTreeLeavesLeftToRight(tree2);
             n_squared.MAST nSquaredMastFinder = new n_squared.MAST();
 //            int nLogNMastSize = nLogNMastFinder.getMAST(tree1, tree2).getNumberOfExternalNodes();
             Phylogeny nSquaredMast = nSquaredMastFinder.getMAST(tree1, tree2);

@@ -77,7 +77,7 @@ public class Runner {
         addEdge(graph, leftSet.get(5), rightSet.get(0));
         addEdge(graph, leftSet.get(6), rightSet.get(5));
 
-        mastFinder.computeLWAMsAndMastSizes(graph, new MAST.TreeAndSizePair[leftSet.size()][1]);
+        mastFinder.computeLWAMsAndMastSizes(graph, new AgreementMatching[leftSet.size()][1]);
     }
 
     public static List<PhylogenyNode> createLeftSet(int size) {
