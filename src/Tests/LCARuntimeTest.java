@@ -12,7 +12,7 @@ import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
  */
 public class LCARuntimeTest {
     public static void main(String[] args) {
-        runtimeTest();
+        preprocessRuntimeTest();
     }
 
     private static void preprocessRuntimeTest() {
@@ -30,8 +30,8 @@ public class LCARuntimeTest {
         for (int i = 100; i < 20000; i+= 100) {
             Phylogeny tree = PhylogenyGenerator.generateRandomTree(i, true);
             addNodeDataReferences(tree);
-            PhylogenyNode node1 = tree.getNode("Leaf_0");
-            PhylogenyNode node2 = tree.getNode("Leaf_10");
+            PhylogenyNode node1 = tree.getNode("0");
+            PhylogenyNode node2 = tree.getNode("10");
             ConstantTimeLCA lcaFinder = new ConstantTimeLCA(tree);
             long time = System.nanoTime();
             lcaFinder.getLCA(node1, node2);

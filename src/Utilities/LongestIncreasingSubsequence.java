@@ -10,28 +10,20 @@ public class LongestIncreasingSubsequence {
     private int[] lisLengths;
 
     public static void main(String[] args) {
-        int[] a = new int[20];
-        a[0] = 9;
-        a[1] = 2;
-        a[2] = 18;
-        a[3] = 15;
-        a[4] = 6;
-        a[5] = 4;
-        a[6] = 16;
-        a[7] = 12;
-        a[8] = 7;
-        a[9] = 11;
-        a[10] = 19;
-        a[11] = 10;
-        a[12] = 13;
-        a[13] = 5;
-        a[14] = 14;
-        a[15] = 1;
-        a[16] = 17;
-        a[17] = 0;
-        a[18] = 3;
-        a[19] = 8;
+        int[] a = new int[9];
+        a[0] = 2;
+        a[1] = 6;
+        a[2] = 3;
+        a[3] = 4;
+        a[4] = 1;
+        a[5] = 2;
+        a[6] = 9;
+        a[7] = 5;
+        a[8] = 8;
         LongestIncreasingSubsequence lis = new LongestIncreasingSubsequence();
+        findLIS(a);
+
+        /*
         for (int i : lis.findLISModified(a)){
             System.out.print(i + " ");
         }
@@ -40,6 +32,7 @@ public class LongestIncreasingSubsequence {
         for (int i : lis.getLisLengths()){
             System.out.print(i + " ");
         }
+        */
     }
 
     public static int[] findLIS(int[] numbers) {

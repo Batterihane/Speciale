@@ -1,5 +1,6 @@
 package Tests;
 
+import Utilities.DataObjects.MASTNodeData;
 import Utilities.DataObjects.NodeDataReference;
 import Utilities.PhylogenyGenerator;
 import Utilities.SubtreeProcessor;
@@ -16,19 +17,21 @@ import java.util.Random;
 public class SubtreeProcessorRuntimeTest {
 
     public static void main(String[] args) {
-        for (int i = 100; i < 10000; i+= 100) {
+        for (int i = 100; i < 100000; i+= 100) {
             Phylogeny tree = PhylogenyGenerator.generateRandomTree(i, true);
             addNodeDataReferences(tree);
+
+
             List<PhylogenyNode> leaves = tree.getRoot().getAllExternalDescendants();
             Random random = new Random();
             while (leaves.size() > 100){
                 leaves.remove(random.nextInt(leaves.size()));
             }
 
-            SubtreeProcessor subtreeProcessor = new SubtreeProcessor(tree);
 
             long time = System.currentTimeMillis();
-            subtreeProcessor.induceSubtree(leaves);
+            SubtreeProcessor subtreeProcessor = new SubtreeProcessor(tree);
+            //subtreeProcessor.induceSubtree(leaves);
             System.out.println(System.currentTimeMillis() - time);
         }
     }
@@ -37,7 +40,11 @@ public class SubtreeProcessorRuntimeTest {
         PhylogenyNodeIterator iterator = tree.iteratorPostorder();
         while (iterator.hasNext()){
             PhylogenyNode currentNode = iterator.next();
-            currentNode.getNodeData().addReference(new NodeDataReference());
+            NodeDataReference nodeDataReference = new NodeDataReference();
+            MASTNodeData mastNodeData = new MASTNodeData();
+            nodeDataReference.setMastNodeData(mastNodeData);
+            currentNode.getNodeData().addReference(nodeDataReference);
+
         }
     }
 
