@@ -1,5 +1,6 @@
 package Utilities.DataObjects;
 
+import Utilities.Pair;
 import nlogn.AgreementMatching;
 import nlogn.Graph;
 import org.forester.phylogeny.Phylogeny;
@@ -16,7 +17,7 @@ public class MASTNodeData extends Reference {
     private int pathNumber = -1; // for node u_i in pi: i, for topmost node v in pi(x_j): j
     private PhylogenyNode twin; // for all leaves
     private Graph graph; // only for nodes in T2 at the beginning of a centroid path
-    private Phylogeny subtreeLWAM; // LWAM(T1, T2(y)) for node y
+    private Pair<AgreementMatching, AgreementMatching[][]> subtreeLWAM; // LWAM(T1, T2(y)) for node y and corresponding lwams
     private int subtreeMASTSize; // size of MAST(T1, T2(y)) for node y
     private PhylogenyNode siNode; // reference to corresponding si node - only for nodes in T2
     private PhylogenyNode t2Node; // reference from si node to corresponding t2 node
@@ -53,11 +54,11 @@ public class MASTNodeData extends Reference {
         this.lisNumber = lisNumber;
     }
 
-    public Phylogeny getSubtreeLWAM() {
+    public Pair<AgreementMatching, AgreementMatching[][]> getSubtreeLWAM() {
         return subtreeLWAM;
     }
 
-    public void setSubtreeLWAM(Phylogeny subtreeLWAM) {
+    public void setSubtreeLWAM(Pair<AgreementMatching, AgreementMatching[][]> subtreeLWAM) {
         this.subtreeLWAM = subtreeLWAM;
     }
 

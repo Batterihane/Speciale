@@ -25,12 +25,14 @@ public class MAST {
     }
 
     public TreeAndSizePair getMAST(Phylogeny tree1, Phylogeny tree2){
-        TreeAndSizePair mast = getMASTRecursive(tree1, tree2);
+        AgreementMatching lwam = getMASTRecursive(tree1, tree2);
+        AgreementMatching[][] lwams = getMASTNodeDataFromNode(tree2.getRoot()).getSubtreeLWAM().getRight();
+        TreeAndSizePair mast = createMASTFromMatching(lwam, lwams);
         updateParentReferences(mast.getTree());
         return mast;
     }
 
-    public TreeAndSizePair getMASTRecursive(Phylogeny tree1, Phylogeny tree2){
+    public AgreementMatching getMASTRecursive(Phylogeny tree1, Phylogeny tree2){
         addNodeDataReferences(tree1);
         addNodeDataReferences(tree2);
 
@@ -41,30 +43,31 @@ public class MAST {
         // simple base case
         if(numberOfLeaves == 1){
             MASTNodeData tree2RootData = getMASTNodeDataFromNode(tree2.getRoot());
-            tree2RootData.setSubtreeLWAM(tree2);
+            AgreementMatching lwam = new AgreementMatching(new ProperCrossing(new GraphEdge(tree1.getRoot(), tree2.getRoot()), null), null, 1);
+            tree2RootData.setSubtreeLWAM(new Pair<>(lwam, null));
             tree2RootData.setSubtreeMASTSize(1);
-            return new TreeAndSizePair(tree1, 1);
+            return lwam;
         }
         // base case for test
-        if(numberOfLeaves == 2){
-            PhylogenyNode tree2LeftChild = tree2.getRoot().getChildNode1();
-            MASTNodeData tree2LeftChildData = getMASTNodeDataFromNode(tree2LeftChild);
-            Phylogeny tree = createTreeWithOneNode(tree2LeftChild.getName());
-            tree2LeftChildData.setSubtreeLWAM(tree);
-            tree2LeftChildData.setSubtreeMASTSize(1);
-
-            PhylogenyNode tree2RightChild = tree2.getRoot().getChildNode2();
-            MASTNodeData tree2RightChildData = getMASTNodeDataFromNode(tree2RightChild);
-            tree = createTreeWithOneNode(tree2RightChild.getName());
-            tree2RightChildData.setSubtreeLWAM(tree);
-            getMASTNodeDataFromNode(tree2.getRoot().getChildNode2()).setSubtreeMASTSize(1);
-
-            MASTNodeData tree2RootData = getMASTNodeDataFromNode(tree2.getRoot());
-            tree2RootData.setSubtreeLWAM(tree2);
-            tree2RootData.setSubtreeMASTSize(2);
-
-            return new TreeAndSizePair(tree1, 2);
-        }
+//        if(numberOfLeaves == 2){
+//            PhylogenyNode tree2LeftChild = tree2.getRoot().getChildNode1();
+//            MASTNodeData tree2LeftChildData = getMASTNodeDataFromNode(tree2LeftChild);
+//            Phylogeny tree = createTreeWithOneNode(tree2LeftChild.getName());
+//            tree2LeftChildData.setSubtreeLWAM(tree);
+//            tree2LeftChildData.setSubtreeMASTSize(1);
+//
+//            PhylogenyNode tree2RightChild = tree2.getRoot().getChildNode2();
+//            MASTNodeData tree2RightChildData = getMASTNodeDataFromNode(tree2RightChild);
+//            tree = createTreeWithOneNode(tree2RightChild.getName());
+//            tree2RightChildData.setSubtreeLWAM(tree);
+//            getMASTNodeDataFromNode(tree2.getRoot().getChildNode2()).setSubtreeMASTSize(1);
+//
+//            MASTNodeData tree2RootData = getMASTNodeDataFromNode(tree2.getRoot());
+//            tree2RootData.setSubtreeLWAM(tree2);
+//            tree2RootData.setSubtreeMASTSize(2);
+//
+//            return new TreeAndSizePair(tree1, 2);
+//        }
 
         setTwins(tree1, tree2);
         List<PhylogenyNode> tree1Decomposition = computeFirstDecomposition(tree1);
@@ -83,9 +86,12 @@ public class MAST {
 
         computeMiSiMASTs(tree1Decomposition, siSubtrees);
 
-        TreeAndSizePair mast = createGraphsAndComputeMAST(tree1Decomposition, tree2Decomposition, siSubtrees);
 
-        return mast;
+        // lwams[i,j] = LWAM(T1(x),T2(y)) where x is the i'th node of pi and y is the j'th node of X
+        AgreementMatching[][] lwams = new AgreementMatching[tree1Decomposition.size()][tree2Decomposition.size()];
+        AgreementMatching lwam = createGraphsAndComputeLWAM(tree1Decomposition, tree2Decomposition, siSubtrees, lwams);
+
+        return lwam;
     }
 
     // Initial setup
@@ -324,7 +330,8 @@ public class MAST {
                     if(!secondChild.isExternal()) remainingStartNodes.push(secondChild);
                     else {
                         MASTNodeData secondChildData = getMASTNodeDataFromNode(secondChild);
-                        secondChildData.setSubtreeLWAM(createTreeWithOneNode(secondChild.getName()));
+                        AgreementMatching lwam = new AgreementMatching(new ProperCrossing(new GraphEdge(secondChildData.getTwin(), secondChild), null), null, 1);
+                        secondChildData.setSubtreeLWAM(new Pair<>(lwam, null));
                         secondChildData.setSubtreeMASTSize(1);
                     }
                 }
@@ -333,7 +340,8 @@ public class MAST {
                     if(!firstChild.isExternal()) remainingStartNodes.push(firstChild);
                     else {
                         MASTNodeData firstChildData = getMASTNodeDataFromNode(firstChild);
-                        firstChildData.setSubtreeLWAM(createTreeWithOneNode(firstChild.getName()));
+                        AgreementMatching lwam = new AgreementMatching(new ProperCrossing(new GraphEdge(firstChildData.getTwin(), firstChild), null), null, 1);
+                        firstChildData.setSubtreeLWAM(new Pair<>(lwam, null));
                         firstChildData.setSubtreeMASTSize(1);
                     }
                 }
@@ -514,13 +522,11 @@ public class MAST {
     }
 
     // Create graphs
-    private TreeAndSizePair createGraphsAndComputeMAST(List<PhylogenyNode> tree1Decomposition, List<List<PhylogenyNode>> tree2Decomposition, List<Phylogeny> siSubtrees) {
+    private AgreementMatching createGraphsAndComputeLWAM(List<PhylogenyNode> tree1Decomposition, List<List<PhylogenyNode>> tree2Decomposition, List<Phylogeny> siSubtrees, AgreementMatching[][] lwams) {
         Graph[] graphs = findAndAddGraphEdges(tree1Decomposition, tree2Decomposition, siSubtrees);
         setPathNumbers(tree1Decomposition, tree2Decomposition);
 
         Phylogeny searchTree = null;
-        // lwams[i,j] = LWAM(T1(x),T2(y)) where x is the i'th node of pi and y is the j'th node of X
-        AgreementMatching[][] lwams = new AgreementMatching[tree1Decomposition.size()][tree2Decomposition.size()];
         for (int i = graphs.length-1; i >= 0; i--) {
             Graph graph = graphs[i];
             setGraphEdgesWeights(graph, lwams);
@@ -550,8 +556,7 @@ public class MAST {
             heaviestMatchingWeight = rWeight;
         }
 
-        TreeAndSizePair result = createMASTFromMatching(heaviestMatching, lwams);
-        return result;
+        return heaviestMatching;
     }
     private Graph[] findAndAddGraphEdges(List<PhylogenyNode> tree1Decomposition, List<List<PhylogenyNode>> tree2Decomposition, List<Phylogeny> siSubtrees) {
         Graph[] graphs = new Graph[tree2Decomposition.size()];
@@ -1251,7 +1256,7 @@ public class MAST {
                 }
 
                 MASTNodeData rightSetNodeData = getMASTNodeDataFromNode(rightSet.get(nextLeafIndex));
-                rightSetNodeData.setSubtreeLWAM(createMASTFromMatching(heaviestMatchingSoFar, lwams).getTree());
+                rightSetNodeData.setSubtreeLWAM(new Pair<>(heaviestMatchingSoFar, lwams));
                 rightSetNodeData.setSubtreeMASTSize(heaviestMatchingWeightSoFar);
                 nextLeafIndex--;
             }
@@ -1295,7 +1300,8 @@ public class MAST {
             Phylogeny subtreeMAST;
             int subtreeMASTSize;
             if(mapNodeData.getT2Node() != rightNode){ // map(i,j) != v_j
-                subtreeMAST = mapNodeData.getSubtreeLWAM();
+                Pair<AgreementMatching, AgreementMatching[][]> lwamPair = mapNodeData.getSubtreeLWAM();
+                subtreeMAST = createMASTFromMatching(lwamPair.getLeft(), lwamPair.getRight()).getTree();
                 subtreeMASTSize = mapNodeData.getSubtreeMASTSize();
             }
             else {
@@ -1306,11 +1312,13 @@ public class MAST {
                 // child is not on the same path as rightNode, i.e. root of N_j
                 if (rightNodeFirstChild.getLink() != rightNode.getLink()) {
                     MASTNodeData mapNodeFirstChildData = getMASTNodeDataFromNode(mapNodeFirstChild);
-                    subtreeMAST = mapNodeFirstChildData.getSubtreeLWAM();
+                    Pair<AgreementMatching, AgreementMatching[][]> lwamPair = mapNodeFirstChildData.getSubtreeLWAM();
+                    subtreeMAST = createMASTFromMatching(lwamPair.getLeft(), lwamPair.getRight()).getTree();
                     subtreeMASTSize = mapNodeFirstChildData.getSubtreeMASTSize();
                 } else {
                     MASTNodeData mapNodeSecondChildData = getMASTNodeDataFromNode(mapNodeSecondChild);
-                    subtreeMAST = mapNodeSecondChildData.getSubtreeLWAM();
+                    Pair<AgreementMatching, AgreementMatching[][]> lwamPair = mapNodeSecondChildData.getSubtreeLWAM();
+                    subtreeMAST = createMASTFromMatching(lwamPair.getLeft(), lwamPair.getRight()).getTree();
                     subtreeMASTSize = mapNodeSecondChildData.getSubtreeMASTSize();
                 }
             }
@@ -1335,7 +1343,8 @@ public class MAST {
                 PhylogenyNode mapNode = greenEdge.getMapNode();
                 MASTNodeData mapNodeData = getMASTNodeDataFromNode(mapNode);
                 // TODO: copyTree??
-                greenEdgeSubtree = new TreeAndSizePair(mapNodeData.getSubtreeLWAM(), mapNodeData.getSubtreeMASTSize());
+                Pair<AgreementMatching, AgreementMatching[][]> lwamPair = mapNodeData.getSubtreeLWAM();
+                greenEdgeSubtree = new TreeAndSizePair(createMASTFromMatching(lwamPair.getLeft(), lwamPair.getRight()).getTree(), mapNodeData.getSubtreeMASTSize());
             }
         }
         GraphEdge redEdge = properCrossing.getRedEdge();
@@ -1452,6 +1461,23 @@ public class MAST {
 
         public int getSize() {
             return size;
+        }
+    }
+    private class LWAMAndLWAMsPair {
+        private final AgreementMatching lwam;
+        private final AgreementMatching[][] lwams;
+
+        public LWAMAndLWAMsPair(AgreementMatching lwam, AgreementMatching[][] lwams){
+            this.lwam = lwam;
+            this.lwams = lwams;
+        }
+
+        public AgreementMatching getLwam() {
+            return lwam;
+        }
+
+        public AgreementMatching[][] getLwams() {
+            return lwams;
         }
     }
     private void updateParentReferences(Phylogeny tree) {

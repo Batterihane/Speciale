@@ -1,6 +1,7 @@
 package Tests;
 
 import Utilities.PhylogenyGenerator;
+import Utilities.PhylogenyParser;
 import nlogn.MAST;
 import org.forester.phylogeny.Phylogeny;
 
@@ -10,18 +11,24 @@ import org.forester.phylogeny.Phylogeny;
 public class MASTRuntimeTest {
 
     public static void main(String[] args) {
-        testBaseCaseTrees();
+        testRandomTrees();
     }
 
     private static void runRandomTrees() {
-        initialRuns();
+//        initialRuns();
 
         System.out.println("Test:");
-        for (int i = 20; i < 10000; i+= 20) { // GC overhead limit at size 42300
-            Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(i, true);
-            Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(i, false);
+        while (true) { // GC overhead limit at size 42300
+            Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(8, true);
+            Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(8, false);
             MAST mast = new MAST();
-            mast.getMAST(tree1, tree2);
+            try{
+                mast.getMAST(tree1, tree2);
+            } catch (Exception e){
+                new PhylogenyParser().toNewick(tree1, "testTree1", false);
+                new PhylogenyParser().toNewick(tree2, "testTree2", false);
+                return;
+            }
         }
     }
 
@@ -31,7 +38,7 @@ public class MASTRuntimeTest {
         System.out.println("Test:");
         for (int i = 10; i < 5000; i+= 10) { // GC overhead limit at size 42300
             long averageTime = (timeGetMASTIdenticalTrees(i) + timeGetMASTIdenticalTrees(i) + timeGetMASTIdenticalTrees(i) + timeGetMASTIdenticalTrees(i) + timeGetMASTIdenticalTrees(i))/5;
-            System.out.println(i + "\t" + ((int)(averageTime/(i*i))));
+            System.out.println(i + "\t" + ((int)(averageTime/ nLogNCube(i))));
         }
     }
 
@@ -76,6 +83,11 @@ public class MASTRuntimeTest {
 
     private static double nLogN(int n){
         return n * (Math.log(n) / Math.log(2));
+    }
+
+    private static double nLogNCube(int n){
+        double logn = Math.log(n) / Math.log(2);
+        return n * logn * logn * logn;
     }
 
 }

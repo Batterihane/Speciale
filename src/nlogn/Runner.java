@@ -16,14 +16,17 @@ import java.util.Map;
 
 public class Runner {
     public static void main(String[] args) {
-        Phylogeny mast = getMASTFromNewickFiles("treess\\T1.new", "treess\\T2.new");
+        Phylogeny mast = getMASTFromNewickFiles("trees\\random\\testTree1.new", "trees\\random\\testTree2.new");
         Archaeopteryx.createApplication(mast);
     }
 
     private static Phylogeny getMASTFromNewickFiles(String tree1Path, String tree2Path){
         ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
-        Phylogeny tree1 = foresterNewickParser.parseNewickFile("treess\\T1.new");
-        Phylogeny tree2 = foresterNewickParser.parseNewickFile("treess\\T2.new");
+        Phylogeny tree1 = foresterNewickParser.parseNewickFile(tree1Path);
+        Phylogeny tree2 = foresterNewickParser.parseNewickFile(tree2Path);
+
+        Archaeopteryx.createApplication(tree1);
+        Archaeopteryx.createApplication(tree2);
 
         Map<String, Integer> namesToNumbers = new HashMap<>();
         List<String> numbersToNames = new ArrayList<>();
