@@ -15,6 +15,7 @@ public class MASTNodeData extends Reference {
     private int miNumber; // only for leaves in T1 except for u_p
     private int leafNumber; // only for leaves in T2
     private int pathNumber = -1; // for node u_i in pi: i, for topmost node v in pi(x_j): j
+    private int id; // for nodes in T2, for SubtreeProcessor
     private PhylogenyNode twin; // for all leaves
     private Graph graph; // only for nodes in T2 at the beginning of a centroid path
     private Pair<AgreementMatching, AgreementMatching[][]> subtreeLWAM; // LWAM(T1, T2(y)) for node y and corresponding lwams
@@ -52,6 +53,14 @@ public class MASTNodeData extends Reference {
 
     public void setLisNumber(int lisNumber) {
         this.lisNumber = lisNumber;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public Pair<AgreementMatching, AgreementMatching[][]> getSubtreeLWAM() {

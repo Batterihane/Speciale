@@ -35,8 +35,17 @@ public class SubtreeProcessor {
     }
 
     public SubtreeProcessor(Phylogeny tree){
+        assignIdsToNodes(tree);
         computeDepths(tree);
         lca = new ConstantTimeLCA(tree);
+    }
+
+    private void assignIdsToNodes(Phylogeny tree){
+        PhylogenyNodeIterator iterator = tree.iteratorPreorder();
+        for(int i = 0 ; iterator.hasNext() ; i++){
+            PhylogenyNode currentNode = iterator.next();
+            getMastNodeDataFromNode(currentNode).setId(i);
+        }
     }
 
     private void computeDepths(Phylogeny tree) {
@@ -48,8 +57,8 @@ public class SubtreeProcessor {
             PhylogenyNode parent = currentNode.getParent();
             if(parent == null) continue;
 
-            int depth = depths[parent.getId() % treeSize] + 1;
-            depths[currentNode.getId()%treeSize] = depth;
+            int depth = depths[getMastNodeDataFromNode(parent).getId()] + 1;
+            depths[getMastNodeDataFromNode(currentNode).getId()] = depth;
             if(depth > maxDepth) maxDepth = depth;
         }
     }
@@ -93,11 +102,11 @@ public class SubtreeProcessor {
             int leftDepth = -1, rightDepth = -1;
             if(leftIndex != -1){
                 PhylogenyNode leftNode = subtreeNodes[leftIndex];
-                leftDepth = depths[leftNode.getId()%treeSize];
+                leftDepth = depths[getMastNodeDataFromNode(leftNode).getId()];
             }
             if(rightIndex != -1){
                 PhylogenyNode rightNode = subtreeNodes[rightIndex];
-                rightDepth = depths[rightNode.getId()%treeSize];
+                rightDepth = depths[getMastNodeDataFromNode(rightNode).getId()];
             }
 
             PhylogenyNode currentNode = newSubtreeNodes[i];
@@ -162,7 +171,7 @@ public class SubtreeProcessor {
         Stack<Integer>[] result = new Stack[maxDepth+1];
         for (int i = 0; i < subtreeNodes.length; i++) {
             PhylogenyNode node = subtreeNodes[i];
-            int depth = depths[node.getId() % treeSize];
+            int depth = depths[getMastNodeDataFromNode(node).getId()];
             Stack<Integer> bucket = result[depth];
             if(bucket == null){
                 bucket = new Stack<>();
