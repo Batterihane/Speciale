@@ -29,10 +29,10 @@ public class SubtreeProcessorRuntimeTest {
             }
 
 
-            long time = System.currentTimeMillis();
             SubtreeProcessor subtreeProcessor = new SubtreeProcessor(tree);
-            //subtreeProcessor.induceSubtree(leaves);
-            System.out.println(System.currentTimeMillis() - time);
+            long time = System.nanoTime();
+            subtreeProcessor.induceSubtree(leaves);
+            System.out.println(System.nanoTime() - time);
         }
     }
 

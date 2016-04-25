@@ -1,9 +1,15 @@
 package Tests;
 
+import Utilities.DataObjects.MASTNodeData;
+import Utilities.DataObjects.NodeDataReference;
 import Utilities.PhylogenyGenerator;
 import Utilities.PhylogenyParser;
 import nlogn.MAST;
 import org.forester.phylogeny.Phylogeny;
+import org.forester.phylogeny.PhylogenyNode;
+import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
+
+import java.util.List;
 
 /**
  * Created by Thomas on 11-03-2016.
@@ -15,20 +21,14 @@ public class MASTRuntimeTest {
     }
 
     private static void runRandomTrees() {
-//        initialRuns();
+        initialRuns();
 
         System.out.println("Test:");
-        while (true) { // GC overhead limit at size 42300
-            Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(8, true);
-            Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(8, false);
+        for (int i = 100 ; i < 40000 ; i+= 100) { // GC overhead limit at size 42300
+            Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(i, true);
+            Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(i, false);
             MAST mast = new MAST();
-            try{
-                mast.getMAST(tree1, tree2);
-            } catch (Exception e){
-                new PhylogenyParser().toNewick(tree1, "testTree1", false);
-                new PhylogenyParser().toNewick(tree2, "testTree2", false);
-                return;
-            }
+            mast.getMAST(tree1, tree2);
         }
     }
 
@@ -49,6 +49,25 @@ public class MASTRuntimeTest {
         for (int i = 100; i < 100000; i+= 100) { // GC overhead limit at size 42300
             long averageTime = (timeGetMAST(i) + timeGetMAST(i) + timeGetMAST(i) + timeGetMAST(i) + timeGetMAST(i))/5;
             System.out.println(i + "\t" + ((int)(averageTime/nLogN(i))));
+        }
+    }
+
+    private static void testInduceSubtrees() {
+        for (int i = 10; i < 50000; i+= 50) {
+            Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(i, true);
+            Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(i, false);
+            tree1.recalculateNumberOfExternalDescendants(true);
+            tree2.recalculateNumberOfExternalDescendants(true);
+            addNodeDataReferences(tree1);
+            addNodeDataReferences(tree2);
+
+            MAST mastFinder = new MAST();
+            mastFinder.setTwins(tree1, tree2);
+            List<PhylogenyNode> tree1Decomposition = mastFinder.computeFirstDecomposition(tree1);
+
+            long time = System.nanoTime();
+            mastFinder.induceSubtrees(tree1Decomposition, tree1, tree2);
+            System.out.println(i + "\t" + (System.nanoTime() - time)/i);
         }
     }
 
@@ -90,4 +109,15 @@ public class MASTRuntimeTest {
         return n * logn * logn * logn;
     }
 
+    private static void addNodeDataReferences(Phylogeny tree) {
+        PhylogenyNodeIterator iterator = tree.iteratorPostorder();
+        while (iterator.hasNext()){
+            PhylogenyNode currentNode = iterator.next();
+            NodeDataReference nodeDataReference = new NodeDataReference();
+            MASTNodeData mastNodeData = new MASTNodeData();
+            nodeDataReference.setMastNodeData(mastNodeData);
+            currentNode.getNodeData().addReference(nodeDataReference);
+
+        }
+    }
 }

@@ -3,13 +3,14 @@ package Tests;
 import Utilities.PhylogenyGenerator;
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
+import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
 
 /**
  * Created by Thomas on 10-03-2016.
  */
 public class PhylogenyTest {
     public static void main(String[] args) {
-        getAllExternalDescendantsRuntimeTest();
+        iteratorPreorderTest();
     }
 
     private static void getAllExternalDescendantsRuntimeTest() {
@@ -18,6 +19,21 @@ public class PhylogenyTest {
             PhylogenyNode root = tree.getRoot();
             long time = System.nanoTime();
             root.getAllExternalDescendants();
+            time = System.nanoTime() - time;
+            time = time/i;
+            System.out.println(time);
+        }
+    }
+
+    private static void iteratorPreorderTest() {
+        for (int i = 100; i < 50000; i+= 100) {
+            Phylogeny tree = PhylogenyGenerator.generateRandomTree(i, true);
+            PhylogenyNodeIterator iterator = tree.iteratorPreorder();
+
+            long time = System.nanoTime();
+            while (iterator.hasNext()){
+                PhylogenyNode next = iterator.next();
+            }
             time = System.nanoTime() - time;
             time = time/i;
             System.out.println(time);

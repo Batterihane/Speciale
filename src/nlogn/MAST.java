@@ -356,7 +356,6 @@ public class MAST {
 
     // Induce Si subtrees
     public List<Phylogeny> induceSubtrees(List<PhylogenyNode> t1CentroidPath, Phylogeny tree1, Phylogeny tree2){
-//        int numberOfExternalNodes = tree1.getNumberOfExternalNodes();
         updateMiNumbers(t1CentroidPath);
 
         // Set T2 leaf numbers
@@ -383,12 +382,10 @@ public class MAST {
 
         List<Phylogeny> result = new ArrayList<>();
         SubtreeProcessor subtreeProcessor = new SubtreeProcessor(tree2);
-//        long time = System.nanoTime();
         for (List<PhylogenyNode> siLeaves : sortedSiLeaves){
             if(siLeaves == null) continue;
             result.add(subtreeProcessor.induceSubtree(siLeaves));
         }
-//        System.out.println((int)((System.nanoTime() - time)/(numberOfExternalNodes*(Math.log(numberOfExternalNodes)/Math.log(2)))));
         return result;
     }
     public void updateMiNumbers(List<PhylogenyNode> centroidPath){
@@ -418,7 +415,6 @@ public class MAST {
         while (iterator.hasNext()){
             PhylogenyNode currentNode = iterator.next();
             if(currentNode.isExternal()){
-//                int name = Integer.parseInt(currentNode.getName());
                 int leafNumber = getMASTNodeDataFromNode(getMASTNodeDataFromNode(currentNode).getTwin()).getLeafNumber();
                 sortedTree1Leaves[leafNumber] = currentNode;
             }
