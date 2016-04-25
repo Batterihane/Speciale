@@ -21,7 +21,7 @@ public class MASTCorrectnessTest {
 
             MAST nLogNMastFinder = new MAST();
             n_squared.MAST nSquaredMastFinder = new n_squared.MAST();
-            MAST.TreeAndSizePair nLogNTreeAndSize = nLogNMastFinder.getMAST(tree1, tree2);
+            MAST.TreeAndSizePair nLogNTreeAndSize = nLogNMastFinder.getMAST(tree1, tree2, false);
             Phylogeny nLogNMast = nLogNTreeAndSize.getTree();
             int nLogNMastSize = nLogNTreeAndSize.getSize();
 //            int nLogNMastSize = nLogNMastFinder.getMAST(tree1, tree2).getNumberOfExternalNodes();
@@ -53,7 +53,7 @@ public class MASTCorrectnessTest {
 
             MAST nLogNMastFinder = new MAST();
             n_squared.MAST nSquaredMastFinder = new n_squared.MAST();
-            MAST.TreeAndSizePair nLogNTreeAndSize = nLogNMastFinder.getMAST(tree1, tree2);
+            MAST.TreeAndSizePair nLogNTreeAndSize = nLogNMastFinder.getMAST(tree1, tree2, false);
             Phylogeny nLogNMast = nLogNTreeAndSize.getTree();
             int nLogNMastSize = nLogNTreeAndSize.getSize();
 //            int nLogNMastSize = nLogNMastFinder.getMAST(tree1, tree2).getNumberOfExternalNodes();

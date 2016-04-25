@@ -18,7 +18,21 @@ import java.util.List;
 public class MASTRuntimeTest {
 
     public static void main(String[] args) {
-        testRandomTrees();
+        System.out.println("Iterative:");
+        try {
+            testRandomTrees(100000, false);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        finally {
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e1) {
+                e1.printStackTrace();
+            }
+            System.out.println("Recursive:");
+            testRandomTrees(100000, true);
+        }
     }
 
     private static void runRandomTrees() {
@@ -29,7 +43,7 @@ public class MASTRuntimeTest {
             Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(i, true);
             Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(i, false);
             MAST mast = new MAST();
-            mast.getMAST(tree1, tree2);
+            mast.getMAST(tree1, tree2, false);
         }
     }
 
@@ -43,17 +57,17 @@ public class MASTRuntimeTest {
         }
     }
 
-    private static void testRandomTrees() {
+    private static void testRandomTrees(int maxSize, boolean recursive) {
         initialRuns();
 
         System.out.println("Test:");
-        for (int i = 100; i < 100000; i+= 100) { // GC overhead limit at size 42300
+        for (int i = 100; i <= maxSize; i+= 100) { // GC overhead limit at size 42300
             long[] runtimes = new long[5];
-            runtimes[0] = timeGetMAST(i);
-            runtimes[1] = timeGetMAST(i);
-            runtimes[2] = timeGetMAST(i);
-            runtimes[3] = timeGetMAST(i);
-            runtimes[4] = timeGetMAST(i);
+            runtimes[0] = timeGetMAST(i, recursive);
+            runtimes[1] = timeGetMAST(i, recursive);
+            runtimes[2] = timeGetMAST(i, recursive);
+            runtimes[3] = timeGetMAST(i, recursive);
+            runtimes[4] = timeGetMAST(i, recursive);
             long medianTime = median(runtimes);
             System.out.println(i + "\t" + ((int)(medianTime/nLogN(i))));
         }
@@ -84,17 +98,17 @@ public class MASTRuntimeTest {
             Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(1000, true);
             Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(1000, false);
             MAST mast = new MAST();
-            mast.getMAST(tree1, tree2);
+            mast.getMAST(tree1, tree2, false);
             System.out.println(i);
         }
     }
 
-    private static long timeGetMAST(int size) {
+    private static long timeGetMAST(int size, boolean recursive) {
         Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(size, true);
         Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(size, false);
         MAST mast = new MAST();
         long time = System.nanoTime();
-        mast.getMAST(tree1, tree2);
+        mast.getMAST(tree1, tree2, recursive);
         return System.nanoTime() - time;
     }
 
@@ -103,7 +117,7 @@ public class MASTRuntimeTest {
         Phylogeny tree2 = PhylogenyGenerator.generateBaseCaseTree(size, false);
         MAST mast = new MAST();
         long time = System.nanoTime();
-        mast.getMAST(tree1, tree2);
+        mast.getMAST(tree1, tree2, false);
         return System.nanoTime() - time;
     }
 

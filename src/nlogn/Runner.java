@@ -48,7 +48,7 @@ public class Runner {
         }
 
         MAST mastFinder = new MAST();
-        MAST.TreeAndSizePair mastPair = mastFinder.getMAST(tree1, tree2);
+        MAST.TreeAndSizePair mastPair = mastFinder.getMAST(tree1, tree2, false);
 
         Phylogeny mast = mastPair.getTree();
         PhylogenyNodeIterator mastLeafIterator = mast.iteratorExternalForward();

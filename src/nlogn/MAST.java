@@ -21,11 +21,15 @@ public class MAST {
         Phylogeny tree1 = PhylogenyGenerator.generateBaseCaseTree(10, false);
         Phylogeny tree2 = PhylogenyGenerator.generateBaseCaseTree(10, false);
         MAST mast = new MAST();
-        mast.getMAST(tree1, tree2);
+        mast.getMAST(tree1, tree2, false);
     }
 
-    public TreeAndSizePair getMAST(Phylogeny tree1, Phylogeny tree2){
-        AgreementMatching lwam = getMASTRecursive(tree1, tree2);
+    public TreeAndSizePair getMAST(Phylogeny tree1, Phylogeny tree2, boolean recursive){
+        AgreementMatching lwam;
+        if(recursive)
+            lwam = getMASTRecursive(tree1, tree2);
+        else
+            lwam = getMASTIterative(tree1, tree2);
         AgreementMatching[][] lwams = getMASTNodeDataFromNode(tree2.getRoot()).getSubtreeLWAM().getRight();
         TreeAndSizePair mast = createMASTFromMatching(lwam, lwams);
         updateParentReferences(mast.getTree());
