@@ -9,6 +9,7 @@ import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
 import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -47,8 +48,14 @@ public class MASTRuntimeTest {
 
         System.out.println("Test:");
         for (int i = 100; i < 100000; i+= 100) { // GC overhead limit at size 42300
-            long averageTime = (timeGetMAST(i) + timeGetMAST(i) + timeGetMAST(i) + timeGetMAST(i) + timeGetMAST(i))/5;
-            System.out.println(i + "\t" + ((int)(averageTime/nLogN(i))));
+            long[] runtimes = new long[5];
+            runtimes[0] = timeGetMAST(i);
+            runtimes[1] = timeGetMAST(i);
+            runtimes[2] = timeGetMAST(i);
+            runtimes[3] = timeGetMAST(i);
+            runtimes[4] = timeGetMAST(i);
+            long medianTime = median(runtimes);
+            System.out.println(i + "\t" + ((int)(medianTime/nLogN(i))));
         }
     }
 
@@ -119,5 +126,10 @@ public class MASTRuntimeTest {
             currentNode.getNodeData().addReference(nodeDataReference);
 
         }
+    }
+
+    private static long median(long[] numbers){
+        Arrays.sort(numbers);
+        return numbers[2];
     }
 }
