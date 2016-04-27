@@ -8,6 +8,7 @@ import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
 import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -23,16 +24,20 @@ public class SubtreeProcessorRuntimeTest {
 
 
             List<PhylogenyNode> leaves = tree.getRoot().getAllExternalDescendants();
-            Random random = new Random();
-            while (leaves.size() > 100){
-                leaves.remove(random.nextInt(leaves.size()));
-            }
+//            Random random = new Random();
+//            while (leaves.size() > 100){
+//                leaves.remove(random.nextInt(leaves.size()));
+//            }
 
 
             SubtreeProcessor subtreeProcessor = new SubtreeProcessor(tree);
             long time = System.nanoTime();
-            subtreeProcessor.induceSubtree(leaves);
-            System.out.println(System.nanoTime() - time);
+            for (PhylogenyNode node : leaves){
+                List<PhylogenyNode> leaf = new ArrayList<>();
+                leaf.add(node);
+                subtreeProcessor.induceSubtree(leaf);
+            }
+            System.out.println(i + "\t" + (System.nanoTime() - time)/leaves.size());
         }
     }
 

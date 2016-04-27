@@ -154,10 +154,8 @@ public class MAST {
 //            return baseCaseModified(tree1, tree2);
 //        }
 
-//        long time = System.nanoTime();
+//            long time = System.nanoTime();
             List<Phylogeny> siSubtrees = induceSubtrees(tree1Decomposition, t1, t2);
-//        if(numberOfLeaves > 500)
-//            System.out.println(numberOfLeaves + "\t" + (int)((System.nanoTime() - time) / numberOfLeaves));
 //            System.out.println(numberOfLeaves + "\t" + (int)((System.nanoTime() - time) / (numberOfLeaves * (Math.log(numberOfLeaves) / Math.log(2)))));
 
             addMiAndSiTreePairsToStack(tree1Decomposition, siSubtrees, treePairsForInit);
@@ -441,6 +439,8 @@ public class MAST {
 
     // Induce Si subtrees
     public List<Phylogeny> induceSubtrees(List<PhylogenyNode> t1CentroidPath, Phylogeny tree1, Phylogeny tree2){
+        int numberOfLeaves = tree1.getRoot().getNumberOfExternalNodes();
+
         updateMiNumbers(t1CentroidPath);
 
         // Set T2 leaf numbers
@@ -467,10 +467,12 @@ public class MAST {
 
         List<Phylogeny> result = new ArrayList<>();
         SubtreeProcessor subtreeProcessor = new SubtreeProcessor(tree2);
+
         for (List<PhylogenyNode> siLeaves : sortedSiLeaves){
             if(siLeaves == null) continue;
             result.add(subtreeProcessor.induceSubtree(siLeaves));
         }
+
         return result;
     }
     public void updateMiNumbers(List<PhylogenyNode> centroidPath){

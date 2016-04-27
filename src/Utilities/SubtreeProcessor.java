@@ -7,6 +7,7 @@ import org.forester.phylogeny.PhylogenyNode;
 import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
 
@@ -18,6 +19,7 @@ public class SubtreeProcessor {
     private int treeSize;
     private ConstantTimeLCA lca;
     private int maxDepth;
+    Stack<Integer>[] buckets;
 
     public static void main(String[] args) {
         ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
@@ -37,6 +39,7 @@ public class SubtreeProcessor {
     public SubtreeProcessor(Phylogeny tree){
         assignIdsToNodes(tree);
         computeDepths(tree);
+        buckets = new Stack[maxDepth+1];
         lca = new ConstantTimeLCA(tree);
     }
 
@@ -65,13 +68,20 @@ public class SubtreeProcessor {
 
     public Phylogeny induceSubtree(List<PhylogenyNode> nodes){
         PhylogenyNode[] subtreeNodes = computeSubtreeNodes(nodes);
-        Stack<Integer>[] nodeBuckets = computeNodeBuckets(subtreeNodes);
+        List<Integer> filledBuckets = fillNodeBuckets(subtreeNodes);
         IntegerPair[] leftRightIndexes = computeInitialLeftRightIndexes(subtreeNodes.length);
-        updateLeftRightIndexes(nodeBuckets, leftRightIndexes);
+        updateLeftRightIndexes(filledBuckets, leftRightIndexes);
 
         Phylogeny result = computeSubtree(subtreeNodes, leftRightIndexes);
+        emptyBuckets(filledBuckets);
 
         return result;
+    }
+
+    private void emptyBuckets(List<Integer> filledBuckets){
+        for (int bucketIndex : filledBuckets){
+            buckets[bucketIndex] = null;
+        }
     }
 
     private Phylogeny computeSubtree(PhylogenyNode[] subtreeNodes, IntegerPair[] leftRightIndexes) {
@@ -129,11 +139,9 @@ public class SubtreeProcessor {
         return ((NodeDataReference)currentNode.getNodeData().getReference()).getMastNodeData();
     }
 
-    private void updateLeftRightIndexes(Stack<Integer>[] nodeBuckets, IntegerPair[] leftRightIndexes) {
-        for (int i = nodeBuckets.length-1; i >= 0; i--) {
-            Stack<Integer> currentBucket = nodeBuckets[i];
-            if(currentBucket == null) continue;
-
+    private void updateLeftRightIndexes(List<Integer> filledBuckets, IntegerPair[] leftRightIndexes) {
+        for (int i = filledBuckets.size()-1; i >= 0; i--) {
+            Stack<Integer> currentBucket = buckets[filledBuckets.get(i)];
             while (!currentBucket.isEmpty()){
                 int currentIndex = currentBucket.pop();
                 IntegerPair currentIntegerPair = leftRightIndexes[currentIndex];
@@ -167,19 +175,21 @@ public class SubtreeProcessor {
         return subtreeNodes;
     }
 
-    private Stack<Integer>[] computeNodeBuckets(PhylogenyNode[] subtreeNodes){
-        Stack<Integer>[] result = new Stack[maxDepth+1];
+    private List<Integer> fillNodeBuckets(PhylogenyNode[] subtreeNodes){
+        List<Integer> filledBuckets = new ArrayList<>();
         for (int i = 0; i < subtreeNodes.length; i++) {
             PhylogenyNode node = subtreeNodes[i];
             int depth = depths[getMastNodeDataFromNode(node).getId()];
-            Stack<Integer> bucket = result[depth];
+            Stack<Integer> bucket = buckets[depth];
             if(bucket == null){
                 bucket = new Stack<>();
-                result[depth] = bucket;
+                buckets[depth] = bucket;
+                filledBuckets.add(depth);
             }
             bucket.push(i);
         }
-        return result;
+        Collections.sort(filledBuckets);
+        return filledBuckets;
     }
 
     private class IntegerPair {
