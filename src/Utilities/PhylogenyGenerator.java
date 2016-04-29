@@ -58,6 +58,55 @@ public class PhylogenyGenerator {
         return tree;
     }
 
+    public static Pair<Phylogeny, Phylogeny> generateIdenticalRandomTrees(int size, boolean randomNames){
+        Random random = new Random();
+
+        List<PhylogenyNode> t1Nodes = new ArrayList<>();
+        List<PhylogenyNode> t2Nodes = new ArrayList<>();
+        for (int i = 0; i < size; i++) {
+            PhylogenyNode t1NewNode = new PhylogenyNode();
+            PhylogenyNode t2NewNode = new PhylogenyNode();
+            t1NewNode.setName(i + "");
+            t2NewNode.setName(i + "");
+            t1Nodes.add(t1NewNode);
+            t2Nodes.add(t2NewNode);
+        }
+
+        while(t1Nodes.size() > 1){
+            int i = random.nextInt(t1Nodes.size());
+            PhylogenyNode t1Child1 = t1Nodes.get(i);
+            PhylogenyNode t2Child1 = t2Nodes.get(i);
+            t1Nodes.remove(i);
+            t2Nodes.remove(i);
+            int j = random.nextInt(t1Nodes.size());
+            PhylogenyNode t1Child2 = t1Nodes.get(j);
+            PhylogenyNode t2Child2 = t2Nodes.get(j);
+            t1Nodes.remove(j);
+            t2Nodes.remove(j);
+            PhylogenyNode t1NewNode = new PhylogenyNode();
+            PhylogenyNode t2NewNode = new PhylogenyNode();
+            t1NewNode.setChild1(t1Child1);
+            t1NewNode.setChild2(t1Child2);
+            t2NewNode.setChild1(t2Child1);
+            t2NewNode.setChild2(t2Child2);
+            t1Nodes.add(t1NewNode);
+            t2Nodes.add(t2NewNode);
+            t1NewNode.setName(t1NewNode.getId() + "");
+            t2NewNode.setName(t2NewNode.getId() + "");
+        }
+
+        Phylogeny tree1 = new Phylogeny();
+        Phylogeny tree2 = new Phylogeny();
+        tree1.setRoot(t1Nodes.get(0));
+        tree2.setRoot(t2Nodes.get(0));
+
+        if(!randomNames){
+            renameTreeLeavesLeftToRight(tree1);
+            renameTreeLeavesLeftToRight(tree2);
+        }
+        return new Pair<>(tree1, tree2);
+    }
+
     private static void renameTreeLeavesLeftToRight(Phylogeny tree){
         PhylogenyNodeIterator iterator = tree.iteratorPreorder();
         int i = 0;

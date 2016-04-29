@@ -68,12 +68,12 @@ public class SubtreeProcessor {
 
     public Phylogeny induceSubtree(List<PhylogenyNode> nodes){
         PhylogenyNode[] subtreeNodes = computeSubtreeNodes(nodes);
-        List<Integer> filledBuckets = fillNodeBuckets(subtreeNodes);
+//        List<Integer> filledBuckets = fillNodeBuckets(subtreeNodes);
         IntegerPair[] leftRightIndexes = computeInitialLeftRightIndexes(subtreeNodes.length);
-        updateLeftRightIndexes(filledBuckets, leftRightIndexes);
+        updateLeftRightIndexes(subtreeNodes, leftRightIndexes);
 
         Phylogeny result = computeSubtree(subtreeNodes, leftRightIndexes);
-        emptyBuckets(filledBuckets);
+//        emptyBuckets(filledBuckets);
 
         return result;
     }
@@ -139,7 +139,7 @@ public class SubtreeProcessor {
         return ((NodeDataReference)currentNode.getNodeData().getReference()).getMastNodeData();
     }
 
-    private void updateLeftRightIndexes(List<Integer> filledBuckets, IntegerPair[] leftRightIndexes) {
+    private void updateLeftRightIndexesOld(List<Integer> filledBuckets, IntegerPair[] leftRightIndexes) {
         for (int i = filledBuckets.size()-1; i >= 0; i--) {
             Stack<Integer> currentBucket = buckets[filledBuckets.get(i)];
             while (!currentBucket.isEmpty()){
@@ -150,6 +150,30 @@ public class SubtreeProcessor {
                 if(precedingIndex != -1) leftRightIndexes[precedingIndex].setRight(currentIntegerPair.getRight());
                 if(followingIndex != -1) leftRightIndexes[followingIndex].setLeft(currentIntegerPair.getLeft());
             }
+        }
+    }
+
+    private void updateLeftRightIndexes(PhylogenyNode[] subtreeNodes, IntegerPair[] leftRightIndexes) {
+        Stack<Integer> nextNodesToProcess = new Stack<>();
+        nextNodesToProcess.push(0);
+        while (!nextNodesToProcess.empty()){
+            int currentIndex = nextNodesToProcess.peek();
+            if(currentIndex == -1) return;
+            IntegerPair currentIntegerPair = leftRightIndexes[currentIndex];
+            int precedingIndex = currentIntegerPair.getLeft();
+            int followingIndex = currentIntegerPair.getRight();
+            int currentNodeDepth = depths[getMastNodeDataFromNode(subtreeNodes[currentIndex]).getId()];
+            int followingNodeDepth = followingIndex == -1 ? -1 : depths[getMastNodeDataFromNode(subtreeNodes[followingIndex]).getId()];
+            if(currentNodeDepth > followingNodeDepth){
+                nextNodesToProcess.pop();
+                if(precedingIndex != -1) leftRightIndexes[precedingIndex].setRight(currentIntegerPair.getRight());
+                if(followingIndex != -1) leftRightIndexes[followingIndex].setLeft(currentIntegerPair.getLeft());
+
+                if(nextNodesToProcess.empty())
+                    nextNodesToProcess.push(followingIndex);
+            }
+            else
+                nextNodesToProcess.push(followingIndex);
         }
     }
 

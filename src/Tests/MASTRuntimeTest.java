@@ -19,7 +19,7 @@ import java.util.List;
 public class MASTRuntimeTest {
 
     public static void main(String[] args) {
-        testBaseCaseTrees();
+        testRandomTrees(80000, false);
     }
 
     private static void runRandomTrees() {
@@ -102,11 +102,11 @@ public class MASTRuntimeTest {
         System.out.println("Test:");
         for (int i = 100; i < 80000; i+= 100) { // GC overhead limit at size 42300
             long[] runtimes = new long[5];
-            runtimes[0] = timeGetMASTIdenticalTrees(i, false);
-            runtimes[1] = timeGetMASTIdenticalTrees(i, false);
-            runtimes[2] = timeGetMASTIdenticalTrees(i, false);
-            runtimes[3] = timeGetMASTIdenticalTrees(i, false);
-            runtimes[4] = timeGetMASTIdenticalTrees(i, false);
+            runtimes[0] = timeGetMASTIdenticalBaseCaseTrees(i, false);
+            runtimes[1] = timeGetMASTIdenticalBaseCaseTrees(i, false);
+            runtimes[2] = timeGetMASTIdenticalBaseCaseTrees(i, false);
+            runtimes[3] = timeGetMASTIdenticalBaseCaseTrees(i, false);
+            runtimes[4] = timeGetMASTIdenticalBaseCaseTrees(i, false);
             long medianTime = median(runtimes);
             System.out.println(i + "\t" + ((int)(medianTime/nLogN(i))));
         }
@@ -167,12 +167,12 @@ public class MASTRuntimeTest {
         return System.nanoTime() - time;
     }
 
-    private static long timeGetMASTIdenticalTrees(int size, boolean recursive) {
-        Phylogeny tree1 = PhylogenyGenerator.generateBaseCaseTree(size, recursive);
-        Phylogeny tree2 = PhylogenyGenerator.generateBaseCaseTree(size, recursive);
+    private static long timeGetMASTIdenticalBaseCaseTrees(int size, boolean recursive) {
+        Phylogeny tree1 = PhylogenyGenerator.generateBaseCaseTree(size, false);
+        Phylogeny tree2 = PhylogenyGenerator.generateBaseCaseTree(size, false);
         MAST mast = new MAST();
         long time = System.nanoTime();
-        mast.getMAST(tree1, tree2, false);
+        mast.getMAST(tree1, tree2, recursive);
         return System.nanoTime() - time;
     }
 
@@ -216,61 +216,5 @@ public class MASTRuntimeTest {
     private static long median(long[] numbers){
         Arrays.sort(numbers);
         return numbers[2];
-    }
-
-    private static class GCMonitor {
-        private long previousTotalGarbageCollections = 0;
-        private long previousTotalGarbageCollectingTime = 0;
-
-        private GCMonitor(){
-            getNumberOfGarbageCollectionsSinceLastMeasurement();
-            getTimeUsedOnGarbageCollectingSinceLastMeasurement();
-        }
-
-        private long getNumberOfGarbageCollectionsSinceLastMeasurement() {
-            long totalGarbageCollections = 0;
-            long garbageCollectionTime = 0;
-
-            for(GarbageCollectorMXBean gc :
-                    ManagementFactory.getGarbageCollectorMXBeans()) {
-
-                long count = gc.getCollectionCount();
-
-                if(count >= 0) {
-                    totalGarbageCollections += count;
-                }
-
-                long time = gc.getCollectionTime();
-
-                if(time >= 0) {
-                    garbageCollectionTime += time;
-                }
-            }
-
-            long result = totalGarbageCollections - previousTotalGarbageCollections;
-            previousTotalGarbageCollections = totalGarbageCollections;
-            return result;
-//            System.out.println(totalGarbageCollections);
-//        System.out.println("Total Garbage Collection Time (ms): "
-//                + garbageCollectionTime);
-        }
-
-        private long getTimeUsedOnGarbageCollectingSinceLastMeasurement() { // in ms
-            long totalGarbageCollectingTime = 0;
-
-            for(GarbageCollectorMXBean gc :
-                    ManagementFactory.getGarbageCollectorMXBeans()) {
-
-                long time = gc.getCollectionTime();
-
-                if(time >= 0) {
-                    totalGarbageCollectingTime += time;
-                }
-            }
-
-            long result = totalGarbageCollectingTime - previousTotalGarbageCollectingTime;
-            previousTotalGarbageCollectingTime = totalGarbageCollectingTime;
-            return result;
-        }
     }
 }
