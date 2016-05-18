@@ -2,14 +2,13 @@ package Tests;
 
 import Utilities.DataObjects.MASTNodeData;
 import Utilities.DataObjects.NodeDataReference;
+import Utilities.Pair;
 import Utilities.PhylogenyGenerator;
 import nlogn.MAST;
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
 import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
 
-import java.lang.management.GarbageCollectorMXBean;
-import java.lang.management.ManagementFactory;
 import java.util.Arrays;
 import java.util.List;
 
@@ -19,7 +18,12 @@ import java.util.List;
 public class MASTRuntimeTest {
 
     public static void main(String[] args) {
-        testRandomTrees(80000, false);
+//        testRandomTreesGCSubtracted(80000, false);
+        testPerfectTrees(80000, false);
+//        testRandomTrees(80000, false); // with 1000GB and 2000GB allocated memory
+//        testIdenticalBaseCaseTrees(80000, false);
+//        testNonSimilarBaseCaseTrees(80000, false);
+//        testPerfectTreesGCSubtracted(80000, false);
     }
 
     private static void runRandomTrees() {
@@ -29,6 +33,19 @@ public class MASTRuntimeTest {
         for (int i = 100 ; i < 50000 ; i+= 100) { // GC overhead limit at size 42300
             Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(i, true);
             Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(i, false);
+            MAST mast = new MAST();
+            mast.getMAST(tree1, tree2, false);
+        }
+    }
+
+    private static void runRandomIdenticalTrees() {
+        initialRuns();
+
+        System.out.println("Test:");
+        for (int i = 100 ; i < 50000 ; i+= 100) {
+            Pair<Phylogeny, Phylogeny> trees = PhylogenyGenerator.generateIdenticalRandomTrees(i, false);
+            Phylogeny tree1 = trees.getLeft();
+            Phylogeny tree2 = trees.getRight();
             MAST mast = new MAST();
             mast.getMAST(tree1, tree2, false);
         }
@@ -53,11 +70,11 @@ public class MASTRuntimeTest {
         GCMonitor gcMonitor = new GCMonitor();
         for (int i = 100 ; i <= maxsize ; i+= 100) {
             long[] gcTimes = new long[5];
-            gcTimes[0] = timeGCGetMAST(i, recursive, gcMonitor);
-            gcTimes[1] = timeGCGetMAST(i, recursive, gcMonitor);
-            gcTimes[2] = timeGCGetMAST(i, recursive, gcMonitor);
-            gcTimes[3] = timeGCGetMAST(i, recursive, gcMonitor);
-            gcTimes[4] = timeGCGetMAST(i, recursive, gcMonitor);
+            gcTimes[0] = timeGCGetMASTRandomTrees(i, recursive, gcMonitor);
+            gcTimes[1] = timeGCGetMASTRandomTrees(i, recursive, gcMonitor);
+            gcTimes[2] = timeGCGetMASTRandomTrees(i, recursive, gcMonitor);
+            gcTimes[3] = timeGCGetMASTRandomTrees(i, recursive, gcMonitor);
+            gcTimes[4] = timeGCGetMASTRandomTrees(i, recursive, gcMonitor);
             System.out.println(i + "\t" + median(gcTimes));
         }
     }
@@ -96,19 +113,41 @@ public class MASTRuntimeTest {
         }
     }
 
-    private static void testBaseCaseTrees(){
+    private static void testIdenticalBaseCaseTrees(int size, boolean recursive){
         initialRuns();
 
         System.out.println("Test:");
-        for (int i = 100; i < 80000; i+= 100) { // GC overhead limit at size 42300
+        for (int i = 100; i <= size; i+= 100) { // GC overhead limit at size 42300
             long[] runtimes = new long[5];
-            runtimes[0] = timeGetMASTIdenticalBaseCaseTrees(i, false);
-            runtimes[1] = timeGetMASTIdenticalBaseCaseTrees(i, false);
-            runtimes[2] = timeGetMASTIdenticalBaseCaseTrees(i, false);
-            runtimes[3] = timeGetMASTIdenticalBaseCaseTrees(i, false);
-            runtimes[4] = timeGetMASTIdenticalBaseCaseTrees(i, false);
+            Phylogeny tree1 = PhylogenyGenerator.generateBaseCaseTree(size, false);
+            Phylogeny tree2 = PhylogenyGenerator.generateBaseCaseTree(size, false);
+            runtimes[0] = timeGetMAST(tree1, tree2, recursive);
+            runtimes[1] = timeGetMAST(tree1, tree2, recursive);
+            runtimes[2] = timeGetMAST(tree1, tree2, recursive);
+            runtimes[3] = timeGetMAST(tree1, tree2, recursive);
+            runtimes[4] = timeGetMAST(tree1, tree2, recursive);
             long medianTime = median(runtimes);
-            System.out.println(i + "\t" + ((int)(medianTime/nLogN(i))));
+            System.out.println(i + "\t" + medianTime);
+        }
+    }
+
+    private static void testNonSimilarBaseCaseTrees(int size, boolean recursive){
+        initialRuns();
+
+        System.out.println("Test:");
+        for (int i = 100; i <= size; i+= 100) {
+            Phylogeny tree1 = PhylogenyGenerator.generateBaseCaseTree(i, false);
+            Phylogeny tree2 = PhylogenyGenerator.generateBaseCaseTree(i, true);
+            PhylogenyGenerator.renameTreeLeavesRightToLeft(tree2);
+            long[] runtimes = new long[5];
+            runtimes[0] = timeGetMAST(tree1, tree2, recursive);
+            runtimes[1] = timeGetMAST(tree1, tree2, recursive);
+            runtimes[2] = timeGetMAST(tree1, tree2, recursive);
+            runtimes[3] = timeGetMAST(tree1, tree2, recursive);
+            runtimes[4] = timeGetMAST(tree1, tree2, recursive);
+            long medianTime = median(runtimes);
+//            System.out.println(i + "\t" + ((int)(medianTime/nLogN(i))));
+            System.out.println(i + "\t" + medianTime);
         }
     }
 
@@ -118,13 +157,114 @@ public class MASTRuntimeTest {
         System.out.println("Test:");
         for (int i = 100; i <= maxSize; i+= 100) { // GC overhead limit at size 42300
             long[] runtimes = new long[5];
-            runtimes[0] = timeGetMAST(i, recursive);
-            runtimes[1] = timeGetMAST(i, recursive);
-            runtimes[2] = timeGetMAST(i, recursive);
-            runtimes[3] = timeGetMAST(i, recursive);
-            runtimes[4] = timeGetMAST(i, recursive);
+            runtimes[0] = timeGetMASTRandomTrees(i, recursive);
+            runtimes[1] = timeGetMASTRandomTrees(i, recursive);
+            runtimes[2] = timeGetMASTRandomTrees(i, recursive);
+            runtimes[3] = timeGetMASTRandomTrees(i, recursive);
+            runtimes[4] = timeGetMASTRandomTrees(i, recursive);
             long medianTime = median(runtimes);
-            System.out.println(i + "\t" + ((int)(medianTime/nLogN(i))));
+//            System.out.println(i + "\t" + ((int)(medianTime/nLogN(i))));
+            System.out.println(i + "\t" + medianTime);
+        }
+    }
+
+    private static void testRandomTreesGCSubtracted(int maxSize, boolean recursive) {
+        initialRuns();
+
+        System.out.println("Test:");
+        GCMonitor gcMonitor = new GCMonitor();
+        long runtime;
+        long gcTime;
+        for (int i = 100; i <= maxSize; i+= 100) {
+            long[] runtimes = new long[5];
+            runtime = timeGetMASTRandomTrees(i, recursive);
+            gcTime = gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement() * 1000000;
+            runtimes[0] = runtime - gcTime;
+            runtime = timeGetMASTRandomTrees(i, recursive);
+            gcTime = gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement() * 1000000;
+            runtimes[1] = runtime - gcTime;
+            runtime = timeGetMASTRandomTrees(i, recursive);
+            gcTime = gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement() * 1000000;
+            runtimes[2] = runtime - gcTime;
+            runtime = timeGetMASTRandomTrees(i, recursive);
+            gcTime = gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement() * 1000000;
+            runtimes[3] = runtime - gcTime;
+            runtime = timeGetMASTRandomTrees(i, recursive);
+            gcTime = gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement() * 1000000;
+            runtimes[4] = runtime - gcTime;
+            long medianTime = median(runtimes);
+            System.out.println(i + "\t" + medianTime);
+        }
+    }
+
+    private static void testPerfectTrees(int maxSize, boolean recursive) {
+        initialRuns();
+
+        System.out.println("Test:");
+        for (int i = 100; i <= maxSize; i+= 100) {
+            Phylogeny tree1 = PhylogenyGenerator.generatePerfectTree(i);
+            Phylogeny tree2 = PhylogenyGenerator.generatePerfectTree(i);
+            long[] runtimes = new long[5];
+            runtimes[0] = timeGetMAST(tree1, tree2, recursive);
+            runtimes[1] = timeGetMAST(tree1, tree2, recursive);
+            runtimes[2] = timeGetMAST(tree1, tree2, recursive);
+            runtimes[3] = timeGetMAST(tree1, tree2, recursive);
+            runtimes[4] = timeGetMAST(tree1, tree2, recursive);
+            long medianTime = median(runtimes);
+//            System.out.println(i + "\t" + ((int)(medianTime/nLogN(i))));
+            System.out.println(i + "\t" + medianTime);
+        }
+    }
+
+    private static void testPerfectTreesGCSubtracted(int maxSize, boolean recursive) {
+        initialRuns();
+
+        System.out.println("Test:");
+        GCMonitor gcMonitor = new GCMonitor();
+        long runtime;
+        long gcTime;
+        for (int i = 100; i <= maxSize; i+= 100) {
+            Phylogeny tree1 = PhylogenyGenerator.generatePerfectTree(i);
+            Phylogeny tree2 = PhylogenyGenerator.generatePerfectTree(i);
+            long[] runtimes = new long[5];
+            runtime = timeGetMAST(tree1, tree2, recursive);
+            gcTime = gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement() * 1000000;
+            runtimes[0] = runtime - gcTime;
+            runtime = timeGetMAST(tree1, tree2, recursive);
+            gcTime = gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement() * 1000000;
+            runtimes[1] = runtime - gcTime;
+            runtime = timeGetMAST(tree1, tree2, recursive);
+            gcTime = gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement() * 1000000;
+            runtimes[2] = runtime - gcTime;
+            runtime = timeGetMAST(tree1, tree2, recursive);
+            gcTime = gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement() * 1000000;
+            runtimes[3] = runtime - gcTime;
+            runtime = timeGetMAST(tree1, tree2, recursive);
+            gcTime = gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement() * 1000000;
+            runtimes[4] = runtime - gcTime;
+            long medianTime = median(runtimes);
+//            System.out.println(i + "\t" + ((int)(medianTime/nLogN(i))));
+            System.out.println(i + "\t" + medianTime);
+        }
+    }
+
+    private static void testGCOnPerfectTrees(int maxSize, boolean recursive) {
+        initialRuns();
+
+        System.out.println("Test:");
+        GCMonitor gcMonitor = new GCMonitor();
+        for (int i = 100; i <= maxSize; i+= 100) {
+            Phylogeny tree1 = PhylogenyGenerator.generatePerfectTree(i);
+            Phylogeny tree2 = PhylogenyGenerator.generatePerfectTree(i);
+            long[] runtimes = new long[5];
+            runtimes[0] = timeGCGetMAST(tree1, tree2, recursive, gcMonitor);
+            runtimes[1] = timeGCGetMAST(tree1, tree2, recursive, gcMonitor);
+            runtimes[2] = timeGCGetMAST(tree1, tree2, recursive, gcMonitor);
+            runtimes[3] = timeGCGetMAST(tree1, tree2, recursive, gcMonitor);
+            runtimes[4] = timeGCGetMAST(tree1, tree2, recursive, gcMonitor);
+            long medianTime = median(runtimes);
+//            System.out.println(i + "\t" + ((int)(medianTime/nLogN(i))));
+            System.out.println(i + "\t" + medianTime);
         }
     }
 
@@ -158,7 +298,7 @@ public class MASTRuntimeTest {
         }
     }
 
-    private static long timeGetMAST(int size, boolean recursive) {
+    private static long timeGetMASTRandomTrees(int size, boolean recursive) {
         Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(size, true);
         Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(size, false);
         MAST mast = new MAST();
@@ -167,18 +307,22 @@ public class MASTRuntimeTest {
         return System.nanoTime() - time;
     }
 
-    private static long timeGetMASTIdenticalBaseCaseTrees(int size, boolean recursive) {
-        Phylogeny tree1 = PhylogenyGenerator.generateBaseCaseTree(size, false);
-        Phylogeny tree2 = PhylogenyGenerator.generateBaseCaseTree(size, false);
+    private static long timeGetMAST(Phylogeny tree1, Phylogeny tree2, boolean recursive) {
         MAST mast = new MAST();
         long time = System.nanoTime();
         mast.getMAST(tree1, tree2, recursive);
         return System.nanoTime() - time;
     }
 
-    private static long timeGCGetMAST(int size, boolean recursive, GCMonitor gcMonitor) {
+    private static long timeGCGetMASTRandomTrees(int size, boolean recursive, GCMonitor gcMonitor) {
         Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(size, true);
         Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(size, false);
+        MAST mast = new MAST();
+        mast.getMAST(tree1, tree2, recursive);
+        return gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement();
+    }
+
+    private static long timeGCGetMAST(Phylogeny tree1, Phylogeny tree2, boolean recursive, GCMonitor gcMonitor) {
         MAST mast = new MAST();
         mast.getMAST(tree1, tree2, recursive);
         return gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement();

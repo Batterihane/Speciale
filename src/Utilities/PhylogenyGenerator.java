@@ -1,28 +1,19 @@
 package Utilities;
 
 import n_squared.MAST;
+import org.forester.archaeopteryx.Archaeopteryx;
+import org.forester.archaeopteryx.MainFrame;
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
 import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
-/**
- * Created by Thomas on 10-02-2016.
- */
 public class PhylogenyGenerator {
 
     public static void main(String[] args) {
-        Phylogeny tree1 = generateRandomTree(1000, true);
-
-        Phylogeny tree2 = generateRandomTree(1000, false);
-        renameTreeLeavesLeftToRight(tree2);
-//        Archaeopteryx.createApplication(tree2);
-        MAST mast = new MAST();
-        //int size = mast.getMAST(tree1, tree2);
-        //System.out.println(size);
+        Phylogeny tree = generatePerfectTree(10);
+        Archaeopteryx.createApplication(tree);
     }
 
     public static Phylogeny generateRandomTree(int size, boolean randomNames){
@@ -107,6 +98,32 @@ public class PhylogenyGenerator {
         return new Pair<>(tree1, tree2);
     }
 
+    public static Phylogeny generatePerfectTree(int size){
+        Phylogeny tree = new Phylogeny();
+        int currentTreeSize = 0;
+        Queue<PhylogenyNode> currentLeaves = new LinkedList<>();
+
+        PhylogenyNode root = new PhylogenyNode();
+        tree.setRoot(root);
+        currentLeaves.add(root);
+        currentTreeSize++;
+
+        while (currentTreeSize < size){
+            PhylogenyNode currentNode = currentLeaves.poll();
+            PhylogenyNode child1 = new PhylogenyNode();
+            PhylogenyNode child2 = new PhylogenyNode();
+            currentNode.setChild1(child1);
+            currentNode.setChild2(child2);
+            currentLeaves.add(child1);
+            currentLeaves.add(child2);
+            currentTreeSize++;
+        }
+
+        renameTreeLeavesLeftToRight(tree);
+
+        return tree;
+    }
+
     private static void renameTreeLeavesLeftToRight(Phylogeny tree){
         PhylogenyNodeIterator iterator = tree.iteratorPreorder();
         int i = 0;
@@ -116,6 +133,16 @@ public class PhylogenyGenerator {
                 currentNode.setName(i + "");
                 i++;
             }
+        }
+    }
+
+    public static void renameTreeLeavesRightToLeft(Phylogeny tree){
+        List<PhylogenyNode> leaves = tree.getExternalNodes();
+        int j = 0;
+        for (int i = leaves.size()-1; i >= 0; i--) {
+            PhylogenyNode currentLeaf = leaves.get(i);
+            currentLeaf.setName(j + "");
+            j++;
         }
     }
 

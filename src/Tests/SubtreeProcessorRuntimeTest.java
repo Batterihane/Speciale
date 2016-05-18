@@ -20,7 +20,9 @@ import java.util.Random;
 public class SubtreeProcessorRuntimeTest {
 
     public static void main(String[] args) {
-        testInduceSubtreeConstantNumberOfLeaves(100000, 1000);
+//        testPreprocessing(100000);
+//        testInduceSubtreeConstantNumberOfLeaves(100000, 1000);
+        testInduceSubtreeConstantTreeSize(100000);
     }
 
     private static void testInduceSubtreeConstantNumberOfLeaves(int maxTreeSize, int numberOfLeaves) {
@@ -65,11 +67,11 @@ public class SubtreeProcessorRuntimeTest {
         addNodeDataReferences(tree);
         SubtreeProcessor subtreeProcessor = new SubtreeProcessor(tree);
 
+        List<PhylogenyNode> allLeaves = tree.getRoot().getAllExternalDescendants();
+        List<PhylogenyNode> leavesForTest = new ArrayList<>();
+        Random random = new Random();
         for (int i = 100; i <= treeSize; i+= 100) {
-            List<PhylogenyNode> allLeaves = tree.getRoot().getAllExternalDescendants();
-            List<PhylogenyNode> leavesForTest = new ArrayList<>();
-            Random random = new Random();
-            for (int j = 0 ; j < i ; j++){
+            for (int j = 0 ; j < 100 ; j++){
                 int index = random.nextInt(allLeaves.size());
                 leavesForTest.add(allLeaves.get(index));
                 allLeaves.remove(index);

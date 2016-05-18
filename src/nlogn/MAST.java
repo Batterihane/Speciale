@@ -178,7 +178,7 @@ public class MAST {
     }
 
     // Initial setup
-    private void addNodeDataReferences(Phylogeny tree){
+    public void addNodeDataReferences(Phylogeny tree){
         if(tree.getRoot().getNodeData().getReferences() != null) return; // Node data has already been added.
 
         PhylogenyNodeIterator iterator = tree.iteratorPostorder();
@@ -631,32 +631,34 @@ public class MAST {
             searchTree = computeLWAMsAndMastSizes(graph, lwams);
             computeLWAMs(graph, searchTree, lwams);
         }
-        SearchTreeNodeData rootData = getSearchTreeNodeData(searchTree.getRoot());
-        AgreementMatching rootM = rootData.getM();
-        ProperCrossing rootX = rootData.getX();
-        GraphEdge rootR = rootData.getR();
-        int mWeight = rootM == null ? 0 : rootM.getWeight();
-        int xWeight = rootX == null ? 0 : rootX.getWeight();
-        int rWeight = rootR == null ? 0 : rootR.getRedWeight();
 
-        AgreementMatching heaviestMatching;
-        int heaviestMatchingWeight;
-        if(mWeight > xWeight && mWeight > rWeight){
-            heaviestMatching = rootM;
-            heaviestMatchingWeight = mWeight;
-        }
-        else if(xWeight > rWeight){
-            heaviestMatching = new AgreementMatching(rootX, null, xWeight);
-            heaviestMatchingWeight = xWeight;
-        }
-        else {
-            heaviestMatching = new AgreementMatching(new ProperCrossing(null, rootR), null, rWeight);
-            heaviestMatchingWeight = rWeight;
-        }
-
-        return heaviestMatching;
+        return lwams[0][0];
+//        SearchTreeNodeData rootData = getSearchTreeNodeData(searchTree.getRoot());
+//        AgreementMatching rootM = rootData.getM();
+//        ProperCrossing rootX = rootData.getX();
+//        GraphEdge rootR = rootData.getR();
+//        int mWeight = rootM == null ? 0 : rootM.getWeight();
+//        int xWeight = rootX == null ? 0 : rootX.getWeight();
+//        int rWeight = rootR == null ? 0 : rootR.getRedWeight();
+//
+//        AgreementMatching heaviestMatching;
+//        int heaviestMatchingWeight;
+//        if(mWeight > xWeight && mWeight > rWeight){
+//            heaviestMatching = rootM;
+//            heaviestMatchingWeight = mWeight;
+//        }
+//        else if(xWeight > rWeight){
+//            heaviestMatching = new AgreementMatching(rootX, null, xWeight);
+//            heaviestMatchingWeight = xWeight;
+//        }
+//        else {
+//            heaviestMatching = new AgreementMatching(new ProperCrossing(null, rootR), null, rWeight);
+//            heaviestMatchingWeight = rWeight;
+//        }
+//
+//        return heaviestMatching;
     }
-    private Graph[] findAndAddGraphEdges(List<PhylogenyNode> tree1Decomposition, List<List<PhylogenyNode>> tree2Decomposition, List<Phylogeny> siSubtrees) {
+    public Graph[] findAndAddGraphEdges(List<PhylogenyNode> tree1Decomposition, List<List<PhylogenyNode>> tree2Decomposition, List<Phylogeny> siSubtrees) {
         Graph[] graphs = new Graph[tree2Decomposition.size()];
         // add graphs and references to graphs
         for (int i = 0; i < tree2Decomposition.size(); i++) {
@@ -1304,7 +1306,7 @@ public class MAST {
         List<PhylogenyNode> rightSet = graph.getRightSet();
 
 
-        // Compute MAST(T1, T2(v_j))
+        // Compute LWAM(T1, T2(v_j))
         Stack<NodeAndMaxGPair> stackItems = new Stack<>();
         PhylogenyNode root = searchTree.getRoot();
         GraphEdge rootG = getSearchTreeNodeData(root).getG();
