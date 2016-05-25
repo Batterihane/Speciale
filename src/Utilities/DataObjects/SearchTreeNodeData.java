@@ -16,6 +16,8 @@ public class SearchTreeNodeData extends Reference {
     private int lowIndex; // lowest index in subtree
     private int maxIndex; // largest index in subtree
     private GraphEdge g;
+    private GraphEdge maxAncestorG; // used when processing red edges
+    private GraphEdge heaviesAddedGreenEdge; // used when processing green edges
     private ProperCrossing x;
     private AgreementMatching m;
     private ProperCrossing y;
@@ -69,6 +71,22 @@ public class SearchTreeNodeData extends Reference {
         this.r = r;
 //        String rString = r == null ? "" : r.toString();
 //        System.out.println(name + ": r changed to " + rString);
+    }
+
+    public GraphEdge getMaxAncestorG() {
+        return maxAncestorG;
+    }
+
+    public void setMaxAncestorG(GraphEdge maxAncestorG) {
+        this.maxAncestorG = maxAncestorG;
+    }
+
+    public GraphEdge getHeaviesAddedGreenEdge() {
+        return heaviesAddedGreenEdge;
+    }
+
+    public void setHeaviesAddedGreenEdge(GraphEdge heaviesAddedGreenEdge) {
+        this.heaviesAddedGreenEdge = heaviesAddedGreenEdge;
     }
 
     public int getIndex() {

@@ -12,10 +12,11 @@ import org.forester.phylogeny.Phylogeny;
 public class MASTCorrectnessTest {
     public static void main(String[] args) {
         nLognVsNSquared();
+//        lisVsNSquared();
     }
 
     private static void nLognVsNSquared() {
-        for (int i = 10; i < 10000; i+= 10) {
+        for (int i = 100; i < 10000; i+= 100) {
             Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(i, true);
             Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(i, false);
 
@@ -74,6 +75,36 @@ public class MASTCorrectnessTest {
             application.dispose();
 
             System.out.println("Success!");
+
+        }
+    }
+
+    private static void lisVsNSquared() {
+        for (int i = 100; i < 10000; i+= 100) {
+            Phylogeny tree1 = PhylogenyGenerator.generateBaseCaseTree(i, true);
+            Phylogeny tree2 = PhylogenyGenerator.generateBaseCaseTree(i, false);
+
+            MAST nLogNMastFinder = new MAST();
+            n_squared.MAST nSquaredMastFinder = new n_squared.MAST();
+            Phylogeny lisMAST = nLogNMastFinder.getMASTUsingMLIS(tree1, tree2);
+            int lisNMastSize = lisMAST.getNumberOfExternalNodes();
+            Phylogeny nSquaredMast = nSquaredMastFinder.getMAST(tree1, tree2);
+            int nSquaredMastSize = nSquaredMast.getNumberOfExternalNodes();
+
+            if(lisNMastSize != nSquaredMastSize){
+                Archaeopteryx.createApplication(tree1);
+                Archaeopteryx.createApplication(tree2);
+                Archaeopteryx.createApplication(lisMAST);
+                Archaeopteryx.createApplication(nSquaredMast);
+
+                System.out.println(i + ": Failure - nlogn(" + lisNMastSize + "), nsquared(" + nSquaredMastSize + ")");
+                return;
+            }
+
+//            MainFrame application = Archaeopteryx.createApplication(nLogNMast);
+//            application.dispose();
+
+            System.out.println(i + ": Success!");
 
         }
     }

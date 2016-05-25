@@ -68,12 +68,10 @@ public class SubtreeProcessor {
 
     public Phylogeny induceSubtree(List<PhylogenyNode> nodes){
         PhylogenyNode[] subtreeNodes = computeSubtreeNodes(nodes);
-//        List<Integer> filledBuckets = fillNodeBuckets(subtreeNodes);
         IntegerPair[] leftRightIndexes = computeInitialLeftRightIndexes(subtreeNodes.length);
         updateLeftRightIndexes(subtreeNodes, leftRightIndexes);
 
         Phylogeny result = computeSubtree(subtreeNodes, leftRightIndexes);
-//        emptyBuckets(filledBuckets);
 
         return result;
     }
@@ -99,7 +97,6 @@ public class SubtreeProcessor {
             newNode.getNodeData().addReference(nodeDataReference);
 
             newNodeMastNodeData.setT2Node(currentNode);
-//            newNode.setLink(currentNode);
 
             // add reference to si node
             getMastNodeDataFromNode(currentNode).setSiNode(newNode);

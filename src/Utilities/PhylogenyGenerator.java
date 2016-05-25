@@ -12,7 +12,7 @@ import java.util.*;
 public class PhylogenyGenerator {
 
     public static void main(String[] args) {
-        Phylogeny tree = generatePerfectTree(10);
+        Phylogeny tree = generatePerfectTree(10, true);
         Archaeopteryx.createApplication(tree);
     }
 
@@ -98,7 +98,7 @@ public class PhylogenyGenerator {
         return new Pair<>(tree1, tree2);
     }
 
-    public static Phylogeny generatePerfectTree(int size){
+    public static Phylogeny generatePerfectTree(int size, boolean randomNames){
         Phylogeny tree = new Phylogeny();
         int currentTreeSize = 0;
         Queue<PhylogenyNode> currentLeaves = new LinkedList<>();
@@ -119,7 +119,10 @@ public class PhylogenyGenerator {
             currentTreeSize++;
         }
 
-        renameTreeLeavesLeftToRight(tree);
+        if(randomNames)
+            renameTreeLeavesRandomly(tree);
+        else
+            renameTreeLeavesLeftToRight(tree);
 
         return tree;
     }
@@ -143,6 +146,27 @@ public class PhylogenyGenerator {
             PhylogenyNode currentLeaf = leaves.get(i);
             currentLeaf.setName(j + "");
             j++;
+        }
+    }
+
+    public static void renameTreeLeavesRandomly(Phylogeny tree){
+        Random random = new Random();
+        List<PhylogenyNode> leaves = new ArrayList();
+        PhylogenyNodeIterator iterator = tree.iteratorPostorder();
+
+        while(iterator.hasNext()) {
+            PhylogenyNode node = iterator.next();
+            if(node.isExternal()) {
+                leaves.add(node);
+            }
+        }
+        int i = 0;
+        while (!leaves.isEmpty()) {
+            int leafIndex = random.nextInt(leaves.size());
+            PhylogenyNode currentLeaf = leaves.get(leafIndex);
+            currentLeaf.setName(i + "");
+            leaves.remove(leafIndex);
+            i++;
         }
     }
 

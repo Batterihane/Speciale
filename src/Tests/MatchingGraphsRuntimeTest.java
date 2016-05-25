@@ -25,7 +25,7 @@ public class MatchingGraphsRuntimeTest {
             mastFinder.setTwins(tree1, tree2);
 
             List<PhylogenyNode> tree1Decomposition = mastFinder.computeFirstDecomposition(tree1);
-            List<List<PhylogenyNode>> tree2Decomposition = mastFinder.computeSecondDecompositionAndAddMASTsToLeaves(tree2);
+            List<List<PhylogenyNode>> tree2Decomposition = mastFinder.computeSecondDecompositionAndAddLWAMsToLeaves(tree2);
 
             List<Phylogeny> siSubtrees = mastFinder.induceSubtrees(tree1Decomposition, tree1, tree2);
 
