@@ -16,7 +16,11 @@ public class SearchTreeNodeData extends Reference {
     private int lowIndex; // lowest index in subtree
     private int maxIndex; // largest index in subtree
     private GraphEdge g;
-    private GraphEdge maxAncestorG; // used when processing red edges
+    private AgreementMatching maxAncestorM; // used when processing white edges
+    private ProperCrossing maxAncestorX; // used when processing white edges
+    private ProperCrossing maxAncestorY; // used when processing white edges
+    private GraphEdge maxAncestorG; // used when processing white and red edges
+    private ProperCrossing maxAncestorGR; // used when processing white edges
     private GraphEdge heaviesAddedGreenEdge; // used when processing green edges
     private ProperCrossing x;
     private AgreementMatching m;
@@ -79,6 +83,38 @@ public class SearchTreeNodeData extends Reference {
 
     public void setMaxAncestorG(GraphEdge maxAncestorG) {
         this.maxAncestorG = maxAncestorG;
+    }
+
+    public AgreementMatching getMaxAncestorM() {
+        return maxAncestorM;
+    }
+
+    public void setMaxAncestorM(AgreementMatching maxAncestorM) {
+        this.maxAncestorM = maxAncestorM;
+    }
+
+    public ProperCrossing getMaxAncestorX() {
+        return maxAncestorX;
+    }
+
+    public void setMaxAncestorX(ProperCrossing maxAncestorX) {
+        this.maxAncestorX = maxAncestorX;
+    }
+
+    public ProperCrossing getMaxAncestorY() {
+        return maxAncestorY;
+    }
+
+    public void setMaxAncestorY(ProperCrossing maxAncestorY) {
+        this.maxAncestorY = maxAncestorY;
+    }
+
+    public ProperCrossing getMaxAncestorGR() {
+        return maxAncestorGR;
+    }
+
+    public void setMaxAncestorGR(ProperCrossing maxAncestorGR) {
+        this.maxAncestorGR = maxAncestorGR;
     }
 
     public GraphEdge getHeaviesAddedGreenEdge() {

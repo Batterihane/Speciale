@@ -1,6 +1,7 @@
 package Tests;
 
 import Utilities.PhylogenyGenerator;
+import Utilities.PhylogenyParser;
 import nlogn.MAST;
 import org.forester.archaeopteryx.Archaeopteryx;
 import org.forester.archaeopteryx.MainFrame;
@@ -30,12 +31,14 @@ public class MASTCorrectnessTest {
             int nSquaredMastSize = nSquaredMast.getNumberOfExternalNodes();
 
             if(nLogNMastSize != nSquaredMastSize){
+                System.out.println(i + ": Failure - nlogn(" + nLogNMastSize + "), nsquared(" + nSquaredMastSize + ")");
+                new PhylogenyParser().toNewick(tree1, "aaaa", false);
+                new PhylogenyParser().toNewick(tree2, "bbbb", false);
                 Archaeopteryx.createApplication(tree1);
                 Archaeopteryx.createApplication(tree2);
                 Archaeopteryx.createApplication(nLogNMast);
                 Archaeopteryx.createApplication(nSquaredMast);
 
-                System.out.println(i + ": Failure - nlogn(" + nLogNMastSize + "), nsquared(" + nSquaredMastSize + ")");
                 return;
             }
 
