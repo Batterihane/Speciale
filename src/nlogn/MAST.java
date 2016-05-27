@@ -872,7 +872,7 @@ public class MAST {
                         currentSearchTreeNode = currentSearchTreeNode.getChildNode1();
                     else currentSearchTreeNode = currentSearchTreeNode.getChildNode2();
                 }
-                processWhiteEdgeOld(ancestors, currentEdge);
+                processSingleWhiteEdgeFromNode(ancestors, currentEdge);
             }
 
             currentSearchTreeNode = searchTree.getRoot();
@@ -902,8 +902,8 @@ public class MAST {
                     else currentSearchTreeNode = currentSearchTreeNode.getChildNode2();
                 }
 
-                processRedEdge(ancestors, currentEdge);
-                processGreenEdge(ancestors, currentEdge);
+                processSingleRedEdgeFromNode(ancestors, currentEdge);
+                processSingleGreenEdgeFromNode(ancestors, currentEdge);
             }
 
             // Compute LWAM(T1(u_i),N_j) = LWAM(T1(u_i),T2(x))
@@ -959,369 +959,19 @@ public class MAST {
                 else break;
             }
 
-            // get search tree node and ancestors
-            PhylogenyNode currentSearchTreeNode = searchTree.getRoot();
+            if(edgesFromLeftNode.size() == 1){
+                GraphEdge currentEdge = edgesFromLeftNode.get(0);
+                List<PhylogenyNode> ancestors = findAncestors(searchTree, currentEdge);
+                processSingleWhiteEdgeFromNode(ancestors, currentEdge);
 
-            // for processing white edges
-            AgreementMatching currentMaxM = null;
-            int currentMaxMWeight = 0;
-            ProperCrossing currentMaxX = null;
-            int currentMaxXWeight = 0;
-            ProperCrossing currentMaxY = null;
-            int currentMaxYWeight = 0;
-            GraphEdge currentMaxG = null;
-            int currentMaxGWeight = 0;
-            ProperCrossing currentMaxGR = null;
-            int currentMaxGRWeight = 0;
-            AgreementMatching lwamInSubtree = null;
-
-            int[] rightNodeIndices = new int[edgesFromLeftNode.size()]; // bottom up order
-            for (int i = 0; i < edgesFromLeftNode.size(); i++) {
-                GraphEdge currentEdge = edgesFromLeftNode.get(i);
-                PhylogenyNode rightNode = currentEdge.getRight();
-                int rightNodeIndex = getGraphNodeData(rightNode).getIndex();
-                rightNodeIndices[i] = rightNodeIndex;
+                processSingleRedEdgeFromNode(ancestors, currentEdge);
+                processSingleGreenEdgeFromNode(ancestors, currentEdge);
+            }
+            else {
+                processWhiteEdgesFromNode(searchTree, edgesFromLeftNode);
+                processRedAndGreenEdgesFromNode(searchTree, edgesFromLeftNode);
             }
 
-            // process white edges top-down
-            for (int i = edgesFromLeftNode.size()-1; i >=0; i--) {
-                GraphEdge currentEdge = edgesFromLeftNode.get(i);
-                int rightNodeIndex = rightNodeIndices[i];
-
-                int currentSearchTreeNodeMaxIndex = getSearchTreeNodeData(currentSearchTreeNode).getMaxIndex();
-                if(rightNodeIndex > currentSearchTreeNodeMaxIndex){
-
-                    while (rightNodeIndex > currentSearchTreeNodeMaxIndex){
-                        currentSearchTreeNode = currentSearchTreeNode.getParent();
-                        currentSearchTreeNodeMaxIndex = getSearchTreeNodeData(currentSearchTreeNode).getMaxIndex();
-
-                        int lwamInSubtreeWeight = lwamInSubtree == null ? 0 : lwamInSubtree.getWeight();
-                        SearchTreeNodeData searchTreeNodeData = getSearchTreeNodeData(currentSearchTreeNode);
-                        AgreementMatching m = searchTreeNodeData.getM();
-                        if(m == null || lwamInSubtreeWeight > m.getWeight()){
-                            searchTreeNodeData.setM(lwamInSubtree);
-                        }
-                        else {
-                            lwamInSubtree = m;
-                        }
-                    }
-                    SearchTreeNodeData searchTreeNodeData = getSearchTreeNodeData(currentSearchTreeNode);
-                    currentMaxM = searchTreeNodeData.getMaxAncestorM();
-                    currentMaxMWeight = currentMaxM == null ? 0 : currentMaxM.getWeight();
-                    currentMaxG = searchTreeNodeData.getMaxAncestorG();
-                    currentMaxGWeight = currentMaxG == null ? 0 : currentMaxG.getGreenWeight();
-                    currentMaxX = searchTreeNodeData.getMaxAncestorX();
-                    currentMaxXWeight = currentMaxX == null ? 0 : currentMaxX.getWeight();
-                    currentMaxY = searchTreeNodeData.getMaxAncestorY();
-                    currentMaxYWeight = currentMaxY == null ? 0 : currentMaxY.getWeight();
-                    currentMaxGR = searchTreeNodeData.getMaxAncestorGR();
-                    currentMaxGRWeight = currentMaxGR == null ? 0 : currentMaxGR.getWeight();
-                }
-
-                while (true){
-                    if(currentSearchTreeNode.isExternal()) break;
-                    SearchTreeNodeData searchTreeNodeData = getSearchTreeNodeData(currentSearchTreeNode);
-
-                    GraphEdge currentNodeG = searchTreeNodeData.getG();
-                    if(currentNodeG != null){
-                        int gWeight = currentNodeG.getGreenWeight();
-                        if(gWeight > currentMaxGWeight){
-                            currentMaxG = currentNodeG;
-                            currentMaxGWeight = gWeight;
-                        }
-                    }
-                    searchTreeNodeData.setMaxAncestorG(currentMaxG);
-
-                    PhylogenyNode leftChild = currentSearchTreeNode.getChildNode1();
-                    PhylogenyNode rightChild = currentSearchTreeNode.getChildNode2();
-                    if (rightNodeIndex < searchTreeNodeData.getIndex()){
-                        currentSearchTreeNode = leftChild;
-
-                        SearchTreeNodeData rightChildData = getSearchTreeNodeData(rightChild);
-                        AgreementMatching rightChildM = rightChildData.getM();
-                        if(rightChildM != null){
-                            int mWeight = rightChildM.getWeight();
-                            if(mWeight > currentMaxMWeight){
-                                currentMaxM = rightChildM;
-                                currentMaxMWeight = mWeight;
-                            }
-                        }
-                        ProperCrossing rightChildX = rightChildData.getX();
-                        if(rightChildX != null){
-                            int xWeight = rightChildX.getWeight();
-                            if(xWeight > currentMaxXWeight){
-                                currentMaxX = rightChildX;
-                                currentMaxXWeight = xWeight;
-                            }
-                        }
-                        ProperCrossing rightChildY = rightChildData.getY();
-                        if(rightChildY != null){
-                            int yWeight = rightChildY.getWeight();
-                            if(yWeight > currentMaxYWeight){
-                                currentMaxY = rightChildY;
-                                currentMaxYWeight = yWeight;
-                            }
-                        }
-
-                        GraphEdge rightChildR = rightChildData.getR();
-                        if(rightChildR != null){
-                            GraphEdge rightChildG = rightChildData.getG();
-                            GraphEdge maxG;
-                            int maxGWeight;
-                            if(rightChildG == null || currentMaxGWeight > rightChildG.getGreenWeight()){
-                                maxG = currentMaxG;
-                                maxGWeight = currentMaxGWeight;
-                            }
-                            else {
-                                maxG = rightChildG;
-                                maxGWeight = rightChildG.getGreenWeight();
-                            }
-
-                            int gRWeight = maxGWeight + rightChildR.getRedWeight();
-                            if(gRWeight > currentMaxGRWeight){
-                                currentMaxGRWeight = gRWeight;
-                                currentMaxGR = new ProperCrossing(maxG, rightChildR);
-                            }
-                        }
-                    }
-                    else {
-                        currentSearchTreeNode = rightChild;
-                    }
-                    SearchTreeNodeData newSearchTreeNodeData = getSearchTreeNodeData(currentSearchTreeNode);
-                    newSearchTreeNodeData.setMaxAncestorM(currentMaxM);
-                    newSearchTreeNodeData.setMaxAncestorX(currentMaxX);
-                    newSearchTreeNodeData.setMaxAncestorY(currentMaxY);
-                    newSearchTreeNodeData.setMaxAncestorGR(currentMaxGR);
-                }
-                lwamInSubtree = processWhiteEdge(currentEdge, currentMaxM, currentMaxX, currentMaxY, currentMaxGR);
-
-                int lwamInSubtreeWeight = lwamInSubtree == null ? 0 : lwamInSubtree.getWeight();
-                SearchTreeNodeData currentSearchTreeNodeData = getSearchTreeNodeData(currentSearchTreeNode);
-                AgreementMatching m = currentSearchTreeNodeData.getM();
-                if(m == null || lwamInSubtreeWeight > m.getWeight()){
-                    currentSearchTreeNodeData.setM(lwamInSubtree);
-                }
-                else {
-                    lwamInSubtree = m;
-                }
-            }
-
-            PhylogenyNode searchTreeRoot = searchTree.getRoot();
-
-            while (currentSearchTreeNode != searchTreeRoot){
-                currentSearchTreeNode = currentSearchTreeNode.getParent();
-
-                int lwamInSubtreeWeight = lwamInSubtree == null ? 0 : lwamInSubtree.getWeight();
-                SearchTreeNodeData currentSearchTreeNodeData = getSearchTreeNodeData(currentSearchTreeNode);
-                AgreementMatching m = currentSearchTreeNodeData.getM();
-                if(m == null || lwamInSubtreeWeight > m.getWeight()){
-                    currentSearchTreeNodeData.setM(lwamInSubtree);
-                }
-                else {
-                    lwamInSubtree = m;
-                }
-            }
-
-            currentSearchTreeNode = searchTree.getRoot();
-
-            // for processing red edges
-            GraphEdge previousMaxAncestorG = null;
-            GraphEdge previousEdge = null;
-
-            // process red and green edges bottom-up
-            for (GraphEdge currentEdge : edgesFromLeftNode) {
-                PhylogenyNode rightNode = currentEdge.getRight();
-                int rightNodeIndex = getGraphNodeData(rightNode).getIndex();
-
-                int currentSearchTreeNodeLowIndex = getSearchTreeNodeData(currentSearchTreeNode).getLowIndex();
-                if(rightNodeIndex < currentSearchTreeNodeLowIndex){
-                    ProperCrossing maxXSoFar = null;
-                    GraphEdge maxRSoFar = previousEdge;
-                    GraphEdge heaviesAddedGreenEdge = previousEdge;
-                    while (rightNodeIndex < currentSearchTreeNodeLowIndex){
-                        PhylogenyNode previousSearchTreeNode = currentSearchTreeNode;
-                        currentSearchTreeNode = currentSearchTreeNode.getParent();
-                        currentSearchTreeNodeLowIndex = getSearchTreeNodeData(currentSearchTreeNode).getLowIndex();
-
-                        // update nodes for red edge
-                        SearchTreeNodeData searchTreeNodeData = getSearchTreeNodeData(currentSearchTreeNode);
-                        // set y
-                        GraphEdge maxAncestorG = searchTreeNodeData.getMaxAncestorG();
-                        GraphEdge r = searchTreeNodeData.getR();
-                        if(maxAncestorG != null && r != null){
-                            int gRWeight = maxAncestorG.getGreenWeight() + r.getRedWeight();
-                            ProperCrossing y = searchTreeNodeData.getY();
-                            if(y == null || gRWeight > y.getWeight())
-                                searchTreeNodeData.setY(new ProperCrossing(maxAncestorG, r));
-                        }
-                        // set g
-                        PhylogenyNode offPathChild;
-                        if(currentSearchTreeNode.getChildNode1() != previousSearchTreeNode){
-                            offPathChild = currentSearchTreeNode.getChildNode1();
-                        }
-                        else {
-                            offPathChild = currentSearchTreeNode.getChildNode2();
-                        }
-                        SearchTreeNodeData offPathChildData = getSearchTreeNodeData(offPathChild);
-                        GraphEdge offPathChildG = offPathChildData.getG();
-                        if(offPathChildG == null || (maxAncestorG != null && maxAncestorG.getGreenWeight() > offPathChildG.getGreenWeight())){
-                            offPathChildData.setG(maxAncestorG);
-                        }
-                        searchTreeNodeData.setG(null);
-                        searchTreeNodeData.setMaxAncestorG(null);
-                        // set r
-                        if(r == null || maxRSoFar.getRedWeight() > r.getRedWeight())
-                            searchTreeNodeData.setR(maxRSoFar);
-                        else
-                            maxRSoFar = r;
-
-                        // update nodes for green edge
-                        GraphEdge leftOffPathChildR = null;
-                        // set g
-                        if(offPathChild == currentSearchTreeNode.getChildNode1()){
-                            offPathChildG = offPathChildData.getG();
-                            if(offPathChildG == null || heaviesAddedGreenEdge.getGreenWeight() > offPathChildG.getGreenWeight()){
-                                offPathChildData.setG(heaviesAddedGreenEdge);
-                            }
-
-                            leftOffPathChildR = offPathChildData.getR();
-                        }
-                        // set x
-                        GraphEdge sideTreeAddedGreenEdge = searchTreeNodeData.getHeaviesAddedGreenEdge();
-                        searchTreeNodeData.setHeaviesAddedGreenEdge(null);
-                        if(sideTreeAddedGreenEdge != null && sideTreeAddedGreenEdge.getGreenWeight() > heaviesAddedGreenEdge.getGreenWeight()){
-                            heaviesAddedGreenEdge = sideTreeAddedGreenEdge;
-                        }
-                        int leftOffPathChildRWeight = leftOffPathChildR == null ? 0 : leftOffPathChildR.getRedWeight();
-                        int maxXSoFarWeight = maxXSoFar == null ? 0 : maxXSoFar.getWeight();
-                        ProperCrossing x = searchTreeNodeData.getX();
-                        int xWeight = x == null ? 0 : x.getWeight();
-                        if(xWeight >= maxXSoFarWeight){
-                            maxXSoFar = x;
-                            maxXSoFarWeight = maxXSoFar == null ? 0 : maxXSoFar.getWeight();
-                        }
-                        if(leftOffPathChildRWeight + heaviesAddedGreenEdge.getGreenWeight() > maxXSoFarWeight){
-                            maxXSoFar = new ProperCrossing(heaviesAddedGreenEdge, leftOffPathChildR);
-                        }
-                        searchTreeNodeData.setX(maxXSoFar);
-                    }
-                    getSearchTreeNodeData(currentSearchTreeNode).setHeaviesAddedGreenEdge(currentEdge);
-                    currentSearchTreeNode = currentSearchTreeNode.getChildNode1();
-                    previousMaxAncestorG = null;
-                }
-
-                while (true){
-                    SearchTreeNodeData searchTreeNodeData = getSearchTreeNodeData(currentSearchTreeNode);
-
-                    GraphEdge currentG = searchTreeNodeData.getG();
-                    int currentGWeight = currentG == null ? 0 : currentG.getGreenWeight();
-                    if(previousMaxAncestorG == null || currentGWeight > previousMaxAncestorG.getGreenWeight()){
-                        previousMaxAncestorG = currentG;
-                    }
-                    searchTreeNodeData.setMaxAncestorG(previousMaxAncestorG);
-
-                    if(currentSearchTreeNode.isExternal()) break;
-                    if (rightNodeIndex < searchTreeNodeData.getIndex())
-                        currentSearchTreeNode = currentSearchTreeNode.getChildNode1();
-                    else currentSearchTreeNode = currentSearchTreeNode.getChildNode2();
-                }
-
-                // process red edge
-                SearchTreeNodeData searchTreeNodeData = getSearchTreeNodeData(currentSearchTreeNode);
-                // set y
-                GraphEdge maxAncestorG = searchTreeNodeData.getMaxAncestorG();
-                GraphEdge r = searchTreeNodeData.getR();
-                if(maxAncestorG != null && r != null){
-                    int gRWeight = maxAncestorG.getGreenWeight() + r.getRedWeight();
-                    ProperCrossing y = searchTreeNodeData.getY();
-                    if(y == null || gRWeight > y.getWeight())
-                        searchTreeNodeData.setY(new ProperCrossing(maxAncestorG, r));
-                }
-                // set g
-                searchTreeNodeData.setG(null);
-                searchTreeNodeData.setMaxAncestorG(null);
-                // set r
-                if(r == null || currentEdge.getRedWeight() > r.getRedWeight())
-                    searchTreeNodeData.setR(currentEdge);
-
-                // process green edge
-                ProperCrossing x = searchTreeNodeData.getX();
-                if(x == null || currentEdge.getGreenWeight() > x.getWeight()){
-                    searchTreeNodeData.setX(new ProperCrossing(currentEdge, null));
-                }
-
-                previousEdge = currentEdge;
-            }
-
-            ProperCrossing maxXSoFar = null;
-            GraphEdge maxRSoFar = previousEdge;
-            GraphEdge heaviesAddedGreenEdge = previousEdge;
-            while(currentSearchTreeNode != searchTreeRoot){
-                PhylogenyNode previousSearchTreeNode = currentSearchTreeNode;
-                currentSearchTreeNode = currentSearchTreeNode.getParent();
-
-                // update nodes for red edge
-                SearchTreeNodeData searchTreeNodeData = getSearchTreeNodeData(currentSearchTreeNode);
-                // set y
-                GraphEdge maxAncestorG = searchTreeNodeData.getMaxAncestorG();
-                GraphEdge r = searchTreeNodeData.getR();
-                if(maxAncestorG != null && r != null){
-                    int gRWeight = maxAncestorG.getGreenWeight() + r.getRedWeight();
-                    ProperCrossing y = searchTreeNodeData.getY();
-                    if(y == null || gRWeight > y.getWeight())
-                        searchTreeNodeData.setY(new ProperCrossing(maxAncestorG, r));
-                }
-                // set g
-                PhylogenyNode offPathChild;
-                if(currentSearchTreeNode.getChildNode1() != previousSearchTreeNode){
-                    offPathChild = currentSearchTreeNode.getChildNode1();
-                }
-                else {
-                    offPathChild = currentSearchTreeNode.getChildNode2();
-                }
-                SearchTreeNodeData offPathChildData = getSearchTreeNodeData(offPathChild);
-                GraphEdge offPathChildG = offPathChildData.getG();
-                if(offPathChildG == null || (maxAncestorG != null && maxAncestorG.getGreenWeight() > offPathChildG.getGreenWeight())){
-                    offPathChildData.setG(maxAncestorG);
-                }
-                searchTreeNodeData.setG(null);
-                searchTreeNodeData.setMaxAncestorG(null);
-                // set r
-                if(r == null || maxRSoFar.getRedWeight() > r.getRedWeight())
-                    searchTreeNodeData.setR(maxRSoFar);
-                else
-                    maxRSoFar = r;
-
-                // update nodes for green edge
-                GraphEdge leftOffPathChildR = null;
-                // set g
-                if(offPathChild == currentSearchTreeNode.getChildNode1()){
-                    offPathChildG = offPathChildData.getG();
-                    if(offPathChildG == null || heaviesAddedGreenEdge.getGreenWeight() > offPathChildG.getGreenWeight()){
-                        offPathChildData.setG(heaviesAddedGreenEdge);
-                    }
-
-                    leftOffPathChildR = offPathChildData.getR();
-                }
-                // set x
-                GraphEdge sideTreeAddedGreenEdge = searchTreeNodeData.getHeaviesAddedGreenEdge();
-                searchTreeNodeData.setHeaviesAddedGreenEdge(null);
-                if(sideTreeAddedGreenEdge != null && sideTreeAddedGreenEdge.getGreenWeight() > heaviesAddedGreenEdge.getGreenWeight()){
-                    heaviesAddedGreenEdge = sideTreeAddedGreenEdge;
-                }
-                int leftOffPathChildRWeight = leftOffPathChildR == null ? 0 : leftOffPathChildR.getRedWeight();
-                int maxXSoFarWeight = maxXSoFar == null ? 0 : maxXSoFar.getWeight();
-                ProperCrossing x = searchTreeNodeData.getX();
-                int xWeight = x == null ? 0 : x.getWeight();
-                if(xWeight >= maxXSoFarWeight){
-                    maxXSoFar = x;
-                    maxXSoFarWeight = maxXSoFar == null ? 0 : maxXSoFar.getWeight();
-                }
-                if(leftOffPathChildRWeight + heaviesAddedGreenEdge.getGreenWeight() > maxXSoFarWeight){
-                    maxXSoFar = new ProperCrossing(heaviesAddedGreenEdge, leftOffPathChildR);
-                }
-                searchTreeNodeData.setX(maxXSoFar);
-            }
 
             // Compute LWAM(T1(u_i),N_j) = LWAM(T1(u_i),T2(x))
             AgreementMatching heaviestMatching;
@@ -1352,110 +1002,37 @@ public class MAST {
         }
         return searchTree;
     }
-    private void computeLWAMsArticle(Graph graph) {
-//        System.out.println("\n\n\n");
-        List<PhylogenyNode> leftSet = graph.getLeftSet();
-//        System.out.println("Left set:");
-//        for (PhylogenyNode node : leftSet){
-//            System.out.println(getMASTNodeDataFromNode(node).getPathNumber());
-//        }
 
-        List<PhylogenyNode> rightSet = graph.getRightSet();
-        double[] weights = setIndexNumbersAndGetWeights(graph, rightSet);
+    private List<PhylogenyNode> findAncestors(Phylogeny searchTree, GraphEdge currentEdge) {
+        // get search tree node and ancestors
+        PhylogenyNode currentSearchTreeNode = searchTree.getRoot();
+        List<PhylogenyNode> ancestors = new ArrayList<>();
 
-//        System.out.println("Right set:");
-//        for (PhylogenyNode node : rightSet){
-//            System.out.println(getGraphNodeData(node).getIndex());
-//        }
+        PhylogenyNode rightNode = currentEdge.getRight();
+        int rightNodeIndex = getGraphNodeData(rightNode).getIndex();
 
-        Phylogeny searchTree = new WeightBalancedBinarySearchTree().constructTree(weights);
-        MainFrame application = Archaeopteryx.createApplication(searchTree);
+        int currentSearchTreeNodeMaxIndex = getSearchTreeNodeData(currentSearchTreeNode).getMaxIndex();
+        if(rightNodeIndex > currentSearchTreeNodeMaxIndex){
+            while (rightNodeIndex > currentSearchTreeNodeMaxIndex){
+                currentSearchTreeNode = currentSearchTreeNode.getParent();
+                currentSearchTreeNodeMaxIndex = getSearchTreeNodeData(currentSearchTreeNode).getMaxIndex();
+                ancestors.remove(ancestors.size()-1);
+            }
+            currentSearchTreeNode = currentSearchTreeNode.getChildNode2();
+        }
 
-        List<GraphEdge> edges = graph.getEdges();
-        PhylogenyNode previousLeftNode = new PhylogenyNode();
-        PhylogenyNode previousSearchTreeNode = new PhylogenyNode();
-        List<PhylogenyNode> previousAncestors = new ArrayList<>();
-        for (int i = edges.size()-1; i >= 0; i--) {
-            GraphEdge edge = edges.get(i);
-            PhylogenyNode leftNode = edge.getLeft();
-            PhylogenyNode rightNode = edge.getRight();
-            int rightNodeIndex = getGraphNodeData(rightNode).getIndex();
-
-            // find node in search tree and get ancestors
-            List<PhylogenyNode> ancestors = new ArrayList<>();
-            PhylogenyNode currentSearchTreeNode;
-            if(leftNode == previousLeftNode) {
-                currentSearchTreeNode = previousSearchTreeNode;
-                ancestors = previousAncestors;
-
-                while (rightNodeIndex < getSearchTreeNodeData(currentSearchTreeNode).getLowIndex()){
-                    currentSearchTreeNode = currentSearchTreeNode.getParent();
-                    ancestors.remove(ancestors.size()-1);
-                }
+        while (true){
+            ancestors.add(currentSearchTreeNode);
+            if(currentSearchTreeNode.isExternal()) break;
+            SearchTreeNodeData searchTreeNodeData = getSearchTreeNodeData(currentSearchTreeNode);
+            if (rightNodeIndex < searchTreeNodeData.getIndex())
                 currentSearchTreeNode = currentSearchTreeNode.getChildNode1();
-            }
-            else
-                currentSearchTreeNode = searchTree.getRoot();
-            while (true){
-                ancestors.add(currentSearchTreeNode);
-                if(currentSearchTreeNode.isExternal()) break;
-                SearchTreeNodeData searchTreeNodeData = getSearchTreeNodeData(currentSearchTreeNode);
-                if (rightNodeIndex < searchTreeNodeData.getIndex())
-                    currentSearchTreeNode = currentSearchTreeNode.getChildNode1();
-                else currentSearchTreeNode = currentSearchTreeNode.getChildNode2();
-            }
-
-            processWhiteEdgeOld(ancestors, edge);
-//            System.out.println();
-            processRedEdge(ancestors, edge);
-//            System.out.println();
-            processGreenEdge(ancestors, edge);
-//            System.out.println();
-
-            previousLeftNode = leftNode;
-            previousSearchTreeNode = currentSearchTreeNode;
-            previousAncestors = ancestors;
+            else currentSearchTreeNode = currentSearchTreeNode.getChildNode2();
         }
-        application.dispose();
-    }
-    private double[] setIndexNumbersAndGetWeights(Graph graph, List<PhylogenyNode> rightSet) {
-        double[] weights = new double[rightSet.size()];
-
-        // Set index numbers and weights
-        int rightSetSubtreeSize = rightSet.get(0).getNumberOfExternalNodes();
-        for (int j = 0; j < rightSet.size(); j++) {
-            PhylogenyNode currentNode = rightSet.get(j);
-            GraphNodeData graphNodeData = getGraphNodeData(currentNode);
-            graphNodeData.setIndex(j);
-
-            int nj;
-            if(currentNode.isExternal()){
-                nj = 1;
-            }
-            else {
-                PhylogenyNode firstChild = currentNode.getChildNode1();
-                PhylogenyNode secondChild = currentNode.getChildNode2();
-                if(firstChild == rightSet.get(j+1)){
-                    nj = secondChild.getNumberOfExternalNodes();
-                }
-                else nj = firstChild.getNumberOfExternalNodes();
-            }
-            if(graphNodeData.hasNonSingletonEdge()){
-                weights[j] = nj + (double)rightSetSubtreeSize/graph.getNsav();
-            }
-            else weights[j] = nj;
-
-        }
-        return weights;
-    }
-    private GraphNodeData getGraphNodeData(PhylogenyNode node){
-        return ((NodeDataReference) node.getNodeData().getReference()).getGraphNodeData();
-    }
-    private SearchTreeNodeData getSearchTreeNodeData(PhylogenyNode node){
-        return (SearchTreeNodeData) node.getNodeData().getReference();
+        return ancestors;
     }
 
-    private void processWhiteEdgeOld(List<PhylogenyNode> ancestors, GraphEdge whiteEdge){
+    private void processSingleWhiteEdgeFromNode(List<PhylogenyNode> ancestors, GraphEdge whiteEdge){
         List<PhylogenyNode> rfringe = getFringe(ancestors, false);
 
         // find largest m, largest x and largest y
@@ -1534,44 +1111,6 @@ public class MAST {
             updateM(ancestors, largestAgreementMatching);
         }
     }
-    private AgreementMatching processWhiteEdge(GraphEdge whiteEdge, AgreementMatching maxM, ProperCrossing maxX, ProperCrossing maxY, ProperCrossing maxGROrRedEdge){
-        int maxMWeight = maxM == null ? 0 : maxM.getWeight();
-        int maxXWeight = maxX == null ? 0 : maxX.getWeight();
-        int maxYWeight = maxY == null ? 0 : maxY.getWeight();
-
-        // find largst agreement matching with 'whiteEdge' as topmost white edge
-        ProperCrossing largestProperCrossing = null;
-        int largestProperCrossingWeight = 0;
-        // largest proper crossing
-        int maxGRWeight = maxGROrRedEdge == null ? 0 : maxGROrRedEdge.getWeight();
-        if(maxXWeight > maxGRWeight){
-            largestProperCrossing = maxX;
-            largestProperCrossingWeight = maxXWeight;
-        }
-        else {
-            largestProperCrossing = maxGROrRedEdge;
-            largestProperCrossingWeight = maxGRWeight;
-        }
-        if(maxYWeight > largestProperCrossingWeight){
-            largestProperCrossing = maxY;
-            largestProperCrossingWeight = maxYWeight;
-        }
-        // largest agreement matching
-        AgreementMatching largestAgreementMatching;
-        if(maxMWeight > largestProperCrossingWeight){
-            WhiteEdgeSequence whiteEdges = new WhiteEdgeSequence(whiteEdge, maxM.getWhiteEdges());
-            int matchingWeight = maxM.getWeight() + whiteEdge.getWhiteWeight();
-            largestAgreementMatching = new AgreementMatching(maxM.getProperCrossing(), whiteEdges, matchingWeight);
-        }
-        else if(largestProperCrossing == null) largestAgreementMatching = null;
-        else {
-            WhiteEdgeSequence whiteEdges = new WhiteEdgeSequence(whiteEdge, null);
-            int matchingWeight = largestProperCrossingWeight + whiteEdge.getWhiteWeight();
-            largestAgreementMatching = new AgreementMatching(largestProperCrossing, whiteEdges, matchingWeight);
-        }
-
-        return largestAgreementMatching;
-    }
     private ProperCrossing findLargestGRCrossingOrSingleRedEdge(List<PhylogenyNode> ancestors) {
         ProperCrossing maxGR = null;
         int maxGRWeight = 0;
@@ -1625,7 +1164,203 @@ public class MAST {
         }
     }
 
-    private void processRedEdge(List<PhylogenyNode> ancestors, GraphEdge redEdge){
+    private void processWhiteEdgesFromNode(Phylogeny searchTree, List<GraphEdge> edgesFromLeftNode) {
+        // get search tree node and ancestors
+        PhylogenyNode currentSearchTreeNode = searchTree.getRoot();
+
+        // for processing white edges
+        AgreementMatching currentMaxM = null;
+        int currentMaxMWeight = 0;
+        ProperCrossing currentMaxX = null;
+        int currentMaxXWeight = 0;
+        ProperCrossing currentMaxY = null;
+        int currentMaxYWeight = 0;
+        GraphEdge currentMaxG = null;
+        int currentMaxGWeight = 0;
+        ProperCrossing currentMaxGR = null;
+        int currentMaxGRWeight = 0;
+        AgreementMatching lwamInSubtree = null;
+
+        // process white edges top-down
+        for (int i = edgesFromLeftNode.size()-1; i >=0; i--) {
+            GraphEdge currentEdge = edgesFromLeftNode.get(i);
+            PhylogenyNode rightNode = currentEdge.getRight();
+            int rightNodeIndex = getGraphNodeData(rightNode).getIndex();
+
+            int currentSearchTreeNodeMaxIndex = getSearchTreeNodeData(currentSearchTreeNode).getMaxIndex();
+            if(rightNodeIndex > currentSearchTreeNodeMaxIndex){
+
+                while (rightNodeIndex > currentSearchTreeNodeMaxIndex){
+                    currentSearchTreeNode = currentSearchTreeNode.getParent();
+                    currentSearchTreeNodeMaxIndex = getSearchTreeNodeData(currentSearchTreeNode).getMaxIndex();
+
+                    int lwamInSubtreeWeight = lwamInSubtree == null ? 0 : lwamInSubtree.getWeight();
+                    SearchTreeNodeData searchTreeNodeData = getSearchTreeNodeData(currentSearchTreeNode);
+                    AgreementMatching m = searchTreeNodeData.getM();
+                    if(m == null || lwamInSubtreeWeight > m.getWeight()){
+                        searchTreeNodeData.setM(lwamInSubtree);
+                    }
+                    else {
+                        lwamInSubtree = m;
+                    }
+                }
+                SearchTreeNodeData searchTreeNodeData = getSearchTreeNodeData(currentSearchTreeNode);
+                currentMaxM = searchTreeNodeData.getMaxAncestorM();
+                currentMaxMWeight = currentMaxM == null ? 0 : currentMaxM.getWeight();
+                currentMaxG = searchTreeNodeData.getMaxAncestorG();
+                currentMaxGWeight = currentMaxG == null ? 0 : currentMaxG.getGreenWeight();
+                currentMaxX = searchTreeNodeData.getMaxAncestorX();
+                currentMaxXWeight = currentMaxX == null ? 0 : currentMaxX.getWeight();
+                currentMaxY = searchTreeNodeData.getMaxAncestorY();
+                currentMaxYWeight = currentMaxY == null ? 0 : currentMaxY.getWeight();
+                currentMaxGR = searchTreeNodeData.getMaxAncestorGR();
+                currentMaxGRWeight = currentMaxGR == null ? 0 : currentMaxGR.getWeight();
+            }
+
+            while (true){
+                if(currentSearchTreeNode.isExternal()) break;
+                SearchTreeNodeData searchTreeNodeData = getSearchTreeNodeData(currentSearchTreeNode);
+
+                GraphEdge currentNodeG = searchTreeNodeData.getG();
+                if(currentNodeG != null){
+                    int gWeight = currentNodeG.getGreenWeight();
+                    if(gWeight > currentMaxGWeight){
+                        currentMaxG = currentNodeG;
+                        currentMaxGWeight = gWeight;
+                    }
+                }
+                searchTreeNodeData.setMaxAncestorG(currentMaxG);
+
+                PhylogenyNode leftChild = currentSearchTreeNode.getChildNode1();
+                PhylogenyNode rightChild = currentSearchTreeNode.getChildNode2();
+                if (rightNodeIndex < searchTreeNodeData.getIndex()){
+                    currentSearchTreeNode = leftChild;
+
+                    SearchTreeNodeData rightChildData = getSearchTreeNodeData(rightChild);
+                    AgreementMatching rightChildM = rightChildData.getM();
+                    if(rightChildM != null){
+                        int mWeight = rightChildM.getWeight();
+                        if(mWeight > currentMaxMWeight){
+                            currentMaxM = rightChildM;
+                            currentMaxMWeight = mWeight;
+                        }
+                    }
+                    ProperCrossing rightChildX = rightChildData.getX();
+                    if(rightChildX != null){
+                        int xWeight = rightChildX.getWeight();
+                        if(xWeight > currentMaxXWeight){
+                            currentMaxX = rightChildX;
+                            currentMaxXWeight = xWeight;
+                        }
+                    }
+                    ProperCrossing rightChildY = rightChildData.getY();
+                    if(rightChildY != null){
+                        int yWeight = rightChildY.getWeight();
+                        if(yWeight > currentMaxYWeight){
+                            currentMaxY = rightChildY;
+                            currentMaxYWeight = yWeight;
+                        }
+                    }
+
+                    GraphEdge rightChildR = rightChildData.getR();
+                    if(rightChildR != null){
+                        GraphEdge rightChildG = rightChildData.getG();
+                        GraphEdge maxG;
+                        int maxGWeight;
+                        if(rightChildG == null || currentMaxGWeight > rightChildG.getGreenWeight()){
+                            maxG = currentMaxG;
+                            maxGWeight = currentMaxGWeight;
+                        }
+                        else {
+                            maxG = rightChildG;
+                            maxGWeight = rightChildG.getGreenWeight();
+                        }
+
+                        int gRWeight = maxGWeight + rightChildR.getRedWeight();
+                        if(gRWeight > currentMaxGRWeight){
+                            currentMaxGRWeight = gRWeight;
+                            currentMaxGR = new ProperCrossing(maxG, rightChildR);
+                        }
+                    }
+                }
+                else {
+                    currentSearchTreeNode = rightChild;
+                }
+                SearchTreeNodeData newSearchTreeNodeData = getSearchTreeNodeData(currentSearchTreeNode);
+                newSearchTreeNodeData.setMaxAncestorM(currentMaxM);
+                newSearchTreeNodeData.setMaxAncestorX(currentMaxX);
+                newSearchTreeNodeData.setMaxAncestorY(currentMaxY);
+                newSearchTreeNodeData.setMaxAncestorGR(currentMaxGR);
+            }
+            lwamInSubtree = findLWAMWithWhiteEdgeAsTopmost(currentEdge, currentMaxM, currentMaxX, currentMaxY, currentMaxGR);
+
+            int lwamInSubtreeWeight = lwamInSubtree == null ? 0 : lwamInSubtree.getWeight();
+            SearchTreeNodeData currentSearchTreeNodeData = getSearchTreeNodeData(currentSearchTreeNode);
+            AgreementMatching m = currentSearchTreeNodeData.getM();
+            if(m == null || lwamInSubtreeWeight > m.getWeight()){
+                currentSearchTreeNodeData.setM(lwamInSubtree);
+            }
+            else {
+                lwamInSubtree = m;
+            }
+        }
+
+        PhylogenyNode searchTreeRoot = searchTree.getRoot();
+
+        while (currentSearchTreeNode != searchTreeRoot){
+            currentSearchTreeNode = currentSearchTreeNode.getParent();
+
+            int lwamInSubtreeWeight = lwamInSubtree == null ? 0 : lwamInSubtree.getWeight();
+            SearchTreeNodeData currentSearchTreeNodeData = getSearchTreeNodeData(currentSearchTreeNode);
+            AgreementMatching m = currentSearchTreeNodeData.getM();
+            if(m == null || lwamInSubtreeWeight > m.getWeight()){
+                currentSearchTreeNodeData.setM(lwamInSubtree);
+            }
+            else {
+                lwamInSubtree = m;
+            }
+        }
+    }
+    private AgreementMatching findLWAMWithWhiteEdgeAsTopmost(GraphEdge whiteEdge, AgreementMatching maxM, ProperCrossing maxX, ProperCrossing maxY, ProperCrossing maxGROrRedEdge){
+        int maxMWeight = maxM == null ? 0 : maxM.getWeight();
+        int maxXWeight = maxX == null ? 0 : maxX.getWeight();
+        int maxYWeight = maxY == null ? 0 : maxY.getWeight();
+
+        // find largst agreement matching with 'whiteEdge' as topmost white edge
+        ProperCrossing largestProperCrossing = null;
+        int largestProperCrossingWeight = 0;
+        // largest proper crossing
+        int maxGRWeight = maxGROrRedEdge == null ? 0 : maxGROrRedEdge.getWeight();
+        if(maxXWeight > maxGRWeight){
+            largestProperCrossing = maxX;
+            largestProperCrossingWeight = maxXWeight;
+        }
+        else {
+            largestProperCrossing = maxGROrRedEdge;
+            largestProperCrossingWeight = maxGRWeight;
+        }
+        if(maxYWeight > largestProperCrossingWeight){
+            largestProperCrossing = maxY;
+            largestProperCrossingWeight = maxYWeight;
+        }
+        // largest agreement matching
+        AgreementMatching largestAgreementMatching;
+        if(maxMWeight > largestProperCrossingWeight){
+            WhiteEdgeSequence whiteEdges = new WhiteEdgeSequence(whiteEdge, maxM.getWhiteEdges());
+            int matchingWeight = maxM.getWeight() + whiteEdge.getWhiteWeight();
+            largestAgreementMatching = new AgreementMatching(maxM.getProperCrossing(), whiteEdges, matchingWeight);
+        }
+        else if(largestProperCrossing == null) largestAgreementMatching = null;
+        else {
+            WhiteEdgeSequence whiteEdges = new WhiteEdgeSequence(whiteEdge, null);
+            int matchingWeight = largestProperCrossingWeight + whiteEdge.getWhiteWeight();
+            largestAgreementMatching = new AgreementMatching(largestProperCrossing, whiteEdges, matchingWeight);
+        }
+
+        return largestAgreementMatching;
+    }
+
+    private void processSingleRedEdgeFromNode(List<PhylogenyNode> ancestors, GraphEdge redEdge){
         // update y(z) for z in ancestors
         // update g(y) for y in lfringe(z) and rfringe(z), z in ancestors
         // update r(z) for z in ancestors
@@ -1678,7 +1413,7 @@ public class MAST {
         }
     }
 
-    private void processGreenEdge(List<PhylogenyNode> ancestors, GraphEdge greenEdge){
+    private void processSingleGreenEdgeFromNode(List<PhylogenyNode> ancestors, GraphEdge greenEdge){
         // update g(z) for z in lfringe
         updateG(ancestors, greenEdge);
 
@@ -1738,6 +1473,312 @@ public class MAST {
             if(x == null || currentMaxLfringeRweight+greenEdge.getGreenWeight() > x.getWeight())
                 currentNodeData.setX(new ProperCrossing(greenEdge, currentMaxLfringeR));
         }
+    }
+
+    private void processRedAndGreenEdgesFromNode(Phylogeny searchTree, List<GraphEdge> edgesFromLeftNode) {
+        PhylogenyNode currentSearchTreeNode = searchTree.getRoot();
+        // for processing red edges
+        GraphEdge previousMaxAncestorG = null;
+        GraphEdge previousEdge = null;
+
+        // process red and green edges bottom-up
+        for (GraphEdge currentEdge : edgesFromLeftNode) {
+            PhylogenyNode rightNode = currentEdge.getRight();
+            int rightNodeIndex = getGraphNodeData(rightNode).getIndex();
+
+            int currentSearchTreeNodeLowIndex = getSearchTreeNodeData(currentSearchTreeNode).getLowIndex();
+            if(rightNodeIndex < currentSearchTreeNodeLowIndex){
+                ProperCrossing maxXSoFar = null;
+                GraphEdge maxRSoFar = previousEdge;
+                GraphEdge heaviesAddedGreenEdge = previousEdge;
+                while (rightNodeIndex < currentSearchTreeNodeLowIndex){
+                    PhylogenyNode previousSearchTreeNode = currentSearchTreeNode;
+                    currentSearchTreeNode = currentSearchTreeNode.getParent();
+                    currentSearchTreeNodeLowIndex = getSearchTreeNodeData(currentSearchTreeNode).getLowIndex();
+
+                    // update nodes for red edge
+                    SearchTreeNodeData searchTreeNodeData = getSearchTreeNodeData(currentSearchTreeNode);
+                    // set y
+                    GraphEdge maxAncestorG = searchTreeNodeData.getMaxAncestorG();
+                    GraphEdge r = searchTreeNodeData.getR();
+                    if(maxAncestorG != null && r != null){
+                        int gRWeight = maxAncestorG.getGreenWeight() + r.getRedWeight();
+                        ProperCrossing y = searchTreeNodeData.getY();
+                        if(y == null || gRWeight > y.getWeight())
+                            searchTreeNodeData.setY(new ProperCrossing(maxAncestorG, r));
+                    }
+                    // set g
+                    PhylogenyNode offPathChild;
+                    if(currentSearchTreeNode.getChildNode1() != previousSearchTreeNode){
+                        offPathChild = currentSearchTreeNode.getChildNode1();
+                    }
+                    else {
+                        offPathChild = currentSearchTreeNode.getChildNode2();
+                    }
+                    SearchTreeNodeData offPathChildData = getSearchTreeNodeData(offPathChild);
+                    GraphEdge offPathChildG = offPathChildData.getG();
+                    if(offPathChildG == null || (maxAncestorG != null && maxAncestorG.getGreenWeight() > offPathChildG.getGreenWeight())){
+                        offPathChildData.setG(maxAncestorG);
+                    }
+                    searchTreeNodeData.setG(null);
+                    searchTreeNodeData.setMaxAncestorG(null);
+                    // set r
+                    if(r == null || maxRSoFar.getRedWeight() > r.getRedWeight())
+                        searchTreeNodeData.setR(maxRSoFar);
+                    else
+                        maxRSoFar = r;
+
+                    // update nodes for green edge
+                    GraphEdge leftOffPathChildR = null;
+                    // set g
+                    if(offPathChild == currentSearchTreeNode.getChildNode1()){
+                        offPathChildG = offPathChildData.getG();
+                        if(offPathChildG == null || heaviesAddedGreenEdge.getGreenWeight() > offPathChildG.getGreenWeight()){
+                            offPathChildData.setG(heaviesAddedGreenEdge);
+                        }
+
+                        leftOffPathChildR = offPathChildData.getR();
+                    }
+                    // set x
+                    GraphEdge sideTreeAddedGreenEdge = searchTreeNodeData.getHeaviesAddedGreenEdge();
+                    searchTreeNodeData.setHeaviesAddedGreenEdge(null);
+                    if(sideTreeAddedGreenEdge != null && sideTreeAddedGreenEdge.getGreenWeight() > heaviesAddedGreenEdge.getGreenWeight()){
+                        heaviesAddedGreenEdge = sideTreeAddedGreenEdge;
+                    }
+                    int leftOffPathChildRWeight = leftOffPathChildR == null ? 0 : leftOffPathChildR.getRedWeight();
+                    int maxXSoFarWeight = maxXSoFar == null ? 0 : maxXSoFar.getWeight();
+                    ProperCrossing x = searchTreeNodeData.getX();
+                    int xWeight = x == null ? 0 : x.getWeight();
+                    if(xWeight >= maxXSoFarWeight){
+                        maxXSoFar = x;
+                        maxXSoFarWeight = maxXSoFar == null ? 0 : maxXSoFar.getWeight();
+                    }
+                    if(leftOffPathChildRWeight + heaviesAddedGreenEdge.getGreenWeight() > maxXSoFarWeight){
+                        maxXSoFar = new ProperCrossing(heaviesAddedGreenEdge, leftOffPathChildR);
+                    }
+                    searchTreeNodeData.setX(maxXSoFar);
+                }
+                getSearchTreeNodeData(currentSearchTreeNode).setHeaviesAddedGreenEdge(currentEdge);
+                currentSearchTreeNode = currentSearchTreeNode.getChildNode1();
+                previousMaxAncestorG = null;
+            }
+
+            while (true){
+                SearchTreeNodeData searchTreeNodeData = getSearchTreeNodeData(currentSearchTreeNode);
+
+                GraphEdge currentG = searchTreeNodeData.getG();
+                int currentGWeight = currentG == null ? 0 : currentG.getGreenWeight();
+                if(previousMaxAncestorG == null || currentGWeight > previousMaxAncestorG.getGreenWeight()){
+                    previousMaxAncestorG = currentG;
+                }
+                searchTreeNodeData.setMaxAncestorG(previousMaxAncestorG);
+
+                if(currentSearchTreeNode.isExternal()) break;
+                if (rightNodeIndex < searchTreeNodeData.getIndex())
+                    currentSearchTreeNode = currentSearchTreeNode.getChildNode1();
+                else currentSearchTreeNode = currentSearchTreeNode.getChildNode2();
+            }
+
+            // process red edge
+            SearchTreeNodeData searchTreeNodeData = getSearchTreeNodeData(currentSearchTreeNode);
+            // set y
+            GraphEdge maxAncestorG = searchTreeNodeData.getMaxAncestorG();
+            GraphEdge r = searchTreeNodeData.getR();
+            if(maxAncestorG != null && r != null){
+                int gRWeight = maxAncestorG.getGreenWeight() + r.getRedWeight();
+                ProperCrossing y = searchTreeNodeData.getY();
+                if(y == null || gRWeight > y.getWeight())
+                    searchTreeNodeData.setY(new ProperCrossing(maxAncestorG, r));
+            }
+            // set g
+            searchTreeNodeData.setG(null);
+            searchTreeNodeData.setMaxAncestorG(null);
+            // set r
+            if(r == null || currentEdge.getRedWeight() > r.getRedWeight())
+                searchTreeNodeData.setR(currentEdge);
+
+            // process green edge
+            ProperCrossing x = searchTreeNodeData.getX();
+            if(x == null || currentEdge.getGreenWeight() > x.getWeight()){
+                searchTreeNodeData.setX(new ProperCrossing(currentEdge, null));
+            }
+
+            previousEdge = currentEdge;
+        }
+
+        ProperCrossing maxXSoFar = null;
+        GraphEdge maxRSoFar = previousEdge;
+        GraphEdge heaviesAddedGreenEdge = previousEdge;
+        PhylogenyNode searchTreeRoot = searchTree.getRoot();
+        while(currentSearchTreeNode != searchTreeRoot){
+            PhylogenyNode previousSearchTreeNode = currentSearchTreeNode;
+            currentSearchTreeNode = currentSearchTreeNode.getParent();
+
+            // update nodes for red edge
+            SearchTreeNodeData searchTreeNodeData = getSearchTreeNodeData(currentSearchTreeNode);
+            // set y
+            GraphEdge maxAncestorG = searchTreeNodeData.getMaxAncestorG();
+            GraphEdge r = searchTreeNodeData.getR();
+            if(maxAncestorG != null && r != null){
+                int gRWeight = maxAncestorG.getGreenWeight() + r.getRedWeight();
+                ProperCrossing y = searchTreeNodeData.getY();
+                if(y == null || gRWeight > y.getWeight())
+                    searchTreeNodeData.setY(new ProperCrossing(maxAncestorG, r));
+            }
+            // set g
+            PhylogenyNode offPathChild;
+            if(currentSearchTreeNode.getChildNode1() != previousSearchTreeNode){
+                offPathChild = currentSearchTreeNode.getChildNode1();
+            }
+            else {
+                offPathChild = currentSearchTreeNode.getChildNode2();
+            }
+            SearchTreeNodeData offPathChildData = getSearchTreeNodeData(offPathChild);
+            GraphEdge offPathChildG = offPathChildData.getG();
+            if(offPathChildG == null || (maxAncestorG != null && maxAncestorG.getGreenWeight() > offPathChildG.getGreenWeight())){
+                offPathChildData.setG(maxAncestorG);
+            }
+            searchTreeNodeData.setG(null);
+            searchTreeNodeData.setMaxAncestorG(null);
+            // set r
+            if(r == null || maxRSoFar.getRedWeight() > r.getRedWeight())
+                searchTreeNodeData.setR(maxRSoFar);
+            else
+                maxRSoFar = r;
+
+            // update nodes for green edge
+            GraphEdge leftOffPathChildR = null;
+            // set g
+            if(offPathChild == currentSearchTreeNode.getChildNode1()){
+                offPathChildG = offPathChildData.getG();
+                if(offPathChildG == null || heaviesAddedGreenEdge.getGreenWeight() > offPathChildG.getGreenWeight()){
+                    offPathChildData.setG(heaviesAddedGreenEdge);
+                }
+
+                leftOffPathChildR = offPathChildData.getR();
+            }
+            // set x
+            GraphEdge sideTreeAddedGreenEdge = searchTreeNodeData.getHeaviesAddedGreenEdge();
+            searchTreeNodeData.setHeaviesAddedGreenEdge(null);
+            if(sideTreeAddedGreenEdge != null && sideTreeAddedGreenEdge.getGreenWeight() > heaviesAddedGreenEdge.getGreenWeight()){
+                heaviesAddedGreenEdge = sideTreeAddedGreenEdge;
+            }
+            int leftOffPathChildRWeight = leftOffPathChildR == null ? 0 : leftOffPathChildR.getRedWeight();
+            int maxXSoFarWeight = maxXSoFar == null ? 0 : maxXSoFar.getWeight();
+            ProperCrossing x = searchTreeNodeData.getX();
+            int xWeight = x == null ? 0 : x.getWeight();
+            if(xWeight >= maxXSoFarWeight){
+                maxXSoFar = x;
+                maxXSoFarWeight = maxXSoFar == null ? 0 : maxXSoFar.getWeight();
+            }
+            if(leftOffPathChildRWeight + heaviesAddedGreenEdge.getGreenWeight() > maxXSoFarWeight){
+                maxXSoFar = new ProperCrossing(heaviesAddedGreenEdge, leftOffPathChildR);
+            }
+            searchTreeNodeData.setX(maxXSoFar);
+        }
+    }
+
+    private void computeLWAMsArticle(Graph graph) {
+//        System.out.println("\n\n\n");
+        List<PhylogenyNode> leftSet = graph.getLeftSet();
+//        System.out.println("Left set:");
+//        for (PhylogenyNode node : leftSet){
+//            System.out.println(getMASTNodeDataFromNode(node).getPathNumber());
+//        }
+
+        List<PhylogenyNode> rightSet = graph.getRightSet();
+        double[] weights = setIndexNumbersAndGetWeights(graph, rightSet);
+
+//        System.out.println("Right set:");
+//        for (PhylogenyNode node : rightSet){
+//            System.out.println(getGraphNodeData(node).getIndex());
+//        }
+
+        Phylogeny searchTree = new WeightBalancedBinarySearchTree().constructTree(weights);
+        MainFrame application = Archaeopteryx.createApplication(searchTree);
+
+        List<GraphEdge> edges = graph.getEdges();
+        PhylogenyNode previousLeftNode = new PhylogenyNode();
+        PhylogenyNode previousSearchTreeNode = new PhylogenyNode();
+        List<PhylogenyNode> previousAncestors = new ArrayList<>();
+        for (int i = edges.size()-1; i >= 0; i--) {
+            GraphEdge edge = edges.get(i);
+            PhylogenyNode leftNode = edge.getLeft();
+            PhylogenyNode rightNode = edge.getRight();
+            int rightNodeIndex = getGraphNodeData(rightNode).getIndex();
+
+            // find node in search tree and get ancestors
+            List<PhylogenyNode> ancestors = new ArrayList<>();
+            PhylogenyNode currentSearchTreeNode;
+            if(leftNode == previousLeftNode) {
+                currentSearchTreeNode = previousSearchTreeNode;
+                ancestors = previousAncestors;
+
+                while (rightNodeIndex < getSearchTreeNodeData(currentSearchTreeNode).getLowIndex()){
+                    currentSearchTreeNode = currentSearchTreeNode.getParent();
+                    ancestors.remove(ancestors.size()-1);
+                }
+                currentSearchTreeNode = currentSearchTreeNode.getChildNode1();
+            }
+            else
+                currentSearchTreeNode = searchTree.getRoot();
+            while (true){
+                ancestors.add(currentSearchTreeNode);
+                if(currentSearchTreeNode.isExternal()) break;
+                SearchTreeNodeData searchTreeNodeData = getSearchTreeNodeData(currentSearchTreeNode);
+                if (rightNodeIndex < searchTreeNodeData.getIndex())
+                    currentSearchTreeNode = currentSearchTreeNode.getChildNode1();
+                else currentSearchTreeNode = currentSearchTreeNode.getChildNode2();
+            }
+
+            processSingleWhiteEdgeFromNode(ancestors, edge);
+//            System.out.println();
+            processSingleRedEdgeFromNode(ancestors, edge);
+//            System.out.println();
+            processSingleGreenEdgeFromNode(ancestors, edge);
+//            System.out.println();
+
+            previousLeftNode = leftNode;
+            previousSearchTreeNode = currentSearchTreeNode;
+            previousAncestors = ancestors;
+        }
+        application.dispose();
+    }
+    private double[] setIndexNumbersAndGetWeights(Graph graph, List<PhylogenyNode> rightSet) {
+        double[] weights = new double[rightSet.size()];
+
+        // Set index numbers and weights
+        int rightSetSubtreeSize = rightSet.get(0).getNumberOfExternalNodes();
+        for (int j = 0; j < rightSet.size(); j++) {
+            PhylogenyNode currentNode = rightSet.get(j);
+            GraphNodeData graphNodeData = getGraphNodeData(currentNode);
+            graphNodeData.setIndex(j);
+
+            int nj;
+            if(currentNode.isExternal()){
+                nj = 1;
+            }
+            else {
+                PhylogenyNode firstChild = currentNode.getChildNode1();
+                PhylogenyNode secondChild = currentNode.getChildNode2();
+                if(firstChild == rightSet.get(j+1)){
+                    nj = secondChild.getNumberOfExternalNodes();
+                }
+                else nj = firstChild.getNumberOfExternalNodes();
+            }
+            if(graphNodeData.hasNonSingletonEdge()){
+                weights[j] = nj + (double)rightSetSubtreeSize/graph.getNsav();
+            }
+            else weights[j] = nj;
+
+        }
+        return weights;
+    }
+    private GraphNodeData getGraphNodeData(PhylogenyNode node){
+        return ((NodeDataReference) node.getNodeData().getReference()).getGraphNodeData();
+    }
+    private SearchTreeNodeData getSearchTreeNodeData(PhylogenyNode node){
+        return (SearchTreeNodeData) node.getNodeData().getReference();
     }
 
     private List<PhylogenyNode> getFringe(List<PhylogenyNode> ancestors, boolean left) {

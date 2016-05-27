@@ -24,8 +24,8 @@ public class MASTRuntimeTest {
 //        testGCOnRandomTrees(80000, false);
 //        testIdenticalBaseCaseTrees(80000, false);
 //        testNonSimilarBaseCaseTrees(80000, false);
-//        testPerfectTreesGCSubtracted(80000, false);
-        testNonSimilarBaseCaseTreesMLIS(80000);
+        testPerfectTreesGCSubtracted(80000, false);
+//        testNonSimilarBaseCaseTreesMLIS(80000);
     }
 
     private static void runRandomTrees() {
@@ -361,7 +361,7 @@ public class MASTRuntimeTest {
 
     private static void initialRuns() {
         System.out.println("Initial:");
-        for (int i = 20; i >= 0; i--) {
+        for (int i = 100; i >= 0; i--) {
             Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(1000, true);
             Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(1000, false);
             MAST mast = new MAST();
