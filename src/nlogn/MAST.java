@@ -19,8 +19,8 @@ public class MAST {
 
     public static void main(String[] args) {
         ForesterNewickParser parser = new ForesterNewickParser();
-        Phylogeny tree1 = parser.parseNewickFile("trees\\random\\aaaa.new");
-        Phylogeny tree2 = parser.parseNewickFile("trees\\random\\bbbb.new");
+        Phylogeny tree1 = parser.parseNewickFileSingleTree("trees\\random\\aaaa.new");
+        Phylogeny tree2 = parser.parseNewickFileSingleTree("trees\\random\\bbbb.new");
 
 //        Phylogeny tree1 = PhylogenyGenerator.generateBaseCaseTree(10, false);
 //        Phylogeny tree2 = PhylogenyGenerator.generateBaseCaseTree(10, false);

@@ -4,29 +4,70 @@ import Utilities.DataObjects.GraphNodeData;
 import Utilities.DataObjects.MASTNodeData;
 import Utilities.DataObjects.NodeDataReference;
 import Utilities.ForesterNewickParser;
+import n_squared.MASTPair;
 import org.forester.archaeopteryx.Archaeopteryx;
 import org.forester.phylogeny.Phylogeny;
 import org.forester.phylogeny.PhylogenyNode;
 import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Runner {
     public static void main(String[] args) {
-        Phylogeny mast = getMASTFromNewickFiles("trees\\random\\testTree1.new", "trees\\random\\testTree2.new");
-        Archaeopteryx.createApplication(mast);
+        prompt();
     }
 
-    private static Phylogeny getMASTFromNewickFiles(String tree1Path, String tree2Path){
-        ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
-        Phylogeny tree1 = foresterNewickParser.parseNewickFile(tree1Path);
-        Phylogeny tree2 = foresterNewickParser.parseNewickFile(tree2Path);
+    private static void prompt(){
+        Scanner scanner = new Scanner(System.in);
+        String tree1Path = "inputTrees\\T1.new";
+        String tree2Path = "inputTrees\\T2.new";
 
-        Archaeopteryx.createApplication(tree1);
-        Archaeopteryx.createApplication(tree2);
+        String instructions = ("type:\n\t" +
+                "\"mast_size\" to compute the mast size of the input trees\n\t" +
+                "\"mast\" to compute and display the mast of the input trees\n\t" +
+                "\"show_trees\" to display the two input trees\n\t" +
+                "\"q\" to quit\n\t"
+        );
+        System.out.println(instructions);
+        String input = "";
+
+        while(!(input.equals("Q"))){
+            input = scanner.next().toUpperCase();
+            MAST.TreeAndSizePair result;
+            switch (input) {
+                case "MAST_SIZE":
+                    System.out.println("Constructing the MAST...");
+                    result = getMASTFromNewickFiles(tree1Path, tree2Path);
+                    System.out.println("MAST size is " + result.getSize());
+                    break;
+                case "MAST":
+                    System.out.println("Constructing the MAST...");
+                    result = getMASTFromNewickFiles(tree1Path, tree2Path);
+                    Archaeopteryx.createApplication(result.getTree());
+                    break;
+                case "SHOW_TREES":
+                    ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
+                    Phylogeny tree1 = foresterNewickParser.parseNewickFileSingleTree(tree1Path);
+                    Phylogeny tree2 = foresterNewickParser.parseNewickFileSingleTree(tree2Path);
+                    Archaeopteryx.createApplication(tree1);
+                    Archaeopteryx.createApplication(tree2);
+                    break;
+                case "Q":
+                    break;
+                default:
+                    System.out.println("Invalid command!\n"+instructions);
+            }
+        }
+    }
+
+
+
+
+
+    private static MAST.TreeAndSizePair getMASTFromNewickFiles(String tree1Path, String tree2Path){
+        ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
+        Phylogeny tree1 = foresterNewickParser.parseNewickFileSingleTree(tree1Path);
+        Phylogeny tree2 = foresterNewickParser.parseNewickFileSingleTree(tree2Path);
 
         Map<String, Integer> namesToNumbers = new HashMap<>();
         List<String> numbersToNames = new ArrayList<>();
@@ -58,7 +99,7 @@ public class Runner {
             currentLeaf.setName(numbersToNames.get(number));
         }
 
-        return mast;
+        return mastPair;
     }
 
     private static void testLWAM() {

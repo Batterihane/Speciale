@@ -17,8 +17,8 @@ public class Runner {
 
         ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
 
-//        Phylogeny tree1 = foresterNewickParser.parseNewickFile("treess\\Tree1.new");
-//        Phylogeny tree2 = foresterNewickParser.parseNewickFile("treess\\Tree4.new");
+//        Phylogeny tree1 = foresterNewickParser.parseNewickFileSingleTree("treess\\Tree1.new");
+//        Phylogeny tree2 = foresterNewickParser.parseNewickFileSingleTree("treess\\Tree4.new");
         //Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(10);
         //Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(10);
         //foresterNewickParser.displayPhylogeny(tree1);
