@@ -23,11 +23,14 @@ public class MASTRuntimeTest {
     public static void main(String[] args) {
 //        writeRandomTreesToNewick();
 //        writeBestCaseTreesToNewick();
+//        writeBestCaseTreesToNewick2();
 //        writeCompleteTreesToNewick();
+//        writeIdenticalCompleteTreesToNewick();
 
-        testNSquared(80000, "testTrees\\randomTrees\\");
+//        testNSquared(80000, "testTrees\\randomTrees\\");
 //        testNSquared(80000, "testTrees\\bestCaseTrees\\");
 //        testNSquared(80000, "testTrees\\completeTrees\\");
+        testNSquared(10000, "testTrees\\completeTrees2\\");
 
 //        testNLogN(80000, false, "testTrees\\randomTrees\\"); // with 1000GB and 2000GB allocated memory
 //        testNLogN(80000, false, "testTrees\\bestCaseTrees\\");
@@ -35,6 +38,8 @@ public class MASTRuntimeTest {
 
 
 
+//        testNSquaredSingleRuns(10000, "testTrees\\completeTrees2\\");
+//        testNLogN(10000, false, "testTrees\\completeTrees2\\");
 
 //        testRandomTreesGCSubtracted(80000, false);
 //        testPerfectTrees(80000, false);
@@ -105,7 +110,7 @@ public class MASTRuntimeTest {
         GCMonitor gcMonitor = new GCMonitor();
         long currentRuntime;
         long currentGcTime;
-        for (int i = 200; i <= maxSize; i+= 200) {
+        for (int i = 50; i <= maxSize; i+= 50) {
             long[] runtime = new long[5];
             long[] gctime = new long[5];
             long[] gcSubtractedTime = new long[5];
@@ -147,6 +152,26 @@ public class MASTRuntimeTest {
             long medianGctime = median(gctime);
             long medianGcSubtractedTime = median(gcSubtractedTime);
             System.out.println(i + "\t" + medianRuntime + "\t" + medianGctime + "\t" + medianGcSubtractedTime);
+        }
+    }
+
+    private static void testNSquaredSingleRuns(int maxSize, String path) {
+        initialRunsNSquared();
+
+        System.out.println("Test:");
+        GCMonitor gcMonitor = new GCMonitor();
+        long runtime;
+        long gctime;
+        long gcSubtractedTime;
+        for (int i = 50; i <= maxSize; i+= 50) {
+            Pair<Phylogeny, Phylogeny> trees = getTreesFromNewick(path, i);
+            Phylogeny tree1 = trees.getLeft();
+            Phylogeny tree2 = trees.getRight();
+
+            runtime = timeGetMASTNSquared(tree1, tree2);
+            gctime = gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement() * 1000000;
+            gcSubtractedTime = runtime - gctime;
+            System.out.println(i + "\t" + runtime + "\t" + gctime + "\t" + gcSubtractedTime);
         }
     }
 
@@ -608,10 +633,32 @@ public class MASTRuntimeTest {
         }
     }
 
+    private static void writeIdenticalCompleteTreesToNewick(){
+        String path = "testTrees\\completeTrees2\\";
+        PhylogenyParser parser = new PhylogenyParser();
+        for (int i = 50; i <= 10000; i+= 50) {
+            Phylogeny tree1 = PhylogenyGenerator.generatePerfectTree(i, false);
+            Phylogeny tree2 = PhylogenyGenerator.generatePerfectTree(i, false);
+            parser.toNewick(tree1, tree2, path + i, false);
+            System.out.println(i);
+        }
+    }
+
     private static void writeBestCaseTreesToNewick(){
         String path = "testTrees\\bestCaseTrees\\";
         PhylogenyParser parser = new PhylogenyParser();
         for (int i = 200; i <= 80000; i+= 200) {
+            Phylogeny tree1 = PhylogenyGenerator.generateBaseCaseTree(i, true);
+            Phylogeny tree2 = PhylogenyGenerator.generateBaseCaseTree(i, false);
+            parser.toNewick(tree1, tree2, path + i, false);
+            System.out.println(i);
+        }
+    }
+
+    private static void writeBestCaseTreesToNewick2(){
+        String path = "testTrees\\bestCaseTrees2\\";
+        PhylogenyParser parser = new PhylogenyParser();
+        for (int i = 50; i <= 10000; i+= 50) {
             Phylogeny tree1 = PhylogenyGenerator.generateBaseCaseTree(i, true);
             Phylogeny tree2 = PhylogenyGenerator.generateBaseCaseTree(i, false);
             parser.toNewick(tree1, tree2, path + i, false);

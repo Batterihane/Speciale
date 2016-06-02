@@ -11,8 +11,6 @@ import java.util.*;
 public class MAST {
 
     public static void main(String[] args) {
-        System.out.println("work plz");
-
     }
 
     public Phylogeny getMAST(Phylogeny tree1, Phylogeny tree2){
@@ -40,7 +38,7 @@ public class MAST {
     }
 
     private boolean treeCompare(Phylogeny tree1, Phylogeny tree2){
-        return treeCompareRecursive(tree1.getRoot(), tree2.getRoot());  //TODO: make nonrecursive?
+        return treeCompareRecursive(tree1.getRoot(), tree2.getRoot());
     }
 
     private boolean treeCompareRecursive(PhylogenyNode node1, PhylogenyNode node2){

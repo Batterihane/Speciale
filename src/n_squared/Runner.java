@@ -10,46 +10,31 @@ import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
 public class Runner {
     public static void main(String[] args) {
 
-
-        backTrackTest();
-        System.exit(0);
-
-
-        ForesterNewickParser foresterNewickParser = new ForesterNewickParser();
-
-//        Phylogeny tree1 = foresterNewickParser.parseNewickFileSingleTree("treess\\Tree1.new");
-//        Phylogeny tree2 = foresterNewickParser.parseNewickFileSingleTree("treess\\Tree4.new");
-        //Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(10);
-        //Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(10);
-        //foresterNewickParser.displayPhylogeny(tree1);
-        //foresterNewickParser.displayPhylogeny(tree2);
-
-        for (int i = 100; i < 200000; i+=100) {
-            Phylogeny tree = PhylogenyGenerator.generateRandomTree(i, true);
-            long start = System.currentTimeMillis();
-            PhylogenyNodeIterator phylogenyNodeIterator = tree.iteratorPostorder();
-            while(phylogenyNodeIterator.hasNext()){
-                phylogenyNodeIterator.next();
-            }
-            long finish = System.currentTimeMillis();
-            System.out.println(i+ ", " + (finish-start));
-        }
-
-
-        //System.out.println(tree1.getRoot().getNumberOfExternalNodes());
-        //System.out.println(tree1.getRoot().getChildNode1().getNumberOfExternalNodes());
-        //System.out.println(tree1.getRoot().getChildNode2().getNumberOfExternalNodes());
-        //tree1.getRoot().getChildNode2().getChildNode1().setLink(tree1.getRoot());
-        //boolean equals = tree1.getRoot().getChildNode2().getChildNode1().getLink().equals(tree1.getRoot());
-        //System.out.println(equals);
-
-        //MAST mast = new MAST();
-//        System.out.println(mast.getMASTsize(tree1, tree2));
-        //foresterNewickParser.displayPhylogeny(mast.getMAST(tree1, tree2));
-
-
-
     }
+
+    private static void initialRunsNSquared() {
+        System.out.println("Initial:");
+        for (int i = 100; i >= 0; i--) {
+            Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(1000, true);
+            Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(1000, false);
+            n_squared.MAST mast = new n_squared.MAST();
+            mast.getMAST(tree1, tree2);
+            System.out.println(i);
+        }
+    }
+
+    private static void runRandomTrees() {
+        initialRunsNSquared();
+
+        System.out.println("Test:");
+        for (int i = 100 ; i < 50000 ; i+= 100) {
+            Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(i, true);
+            Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(i, false);
+            MAST mast = new MAST();
+            mast.getMAST(tree1, tree2);
+        }
+    }
+
     private static void backTrackTest() {
         for (int i = 10; i < 10000; i+= 10) {
             Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(i, true);

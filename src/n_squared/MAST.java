@@ -14,15 +14,17 @@ public class MAST {
 
     public Phylogeny getMAST(Phylogeny tree1, Phylogeny tree2){
         setNodeIds(tree1, tree2);
-        int[] traversalNumbers = new int[tree1.getNodeCount() + tree2.getNodeCount()];
+        int tree1nodeCount = tree1.getNodeCount();
+        int tree2NodeCount = tree2.getNodeCount();
+        int[] traversalNumbers = new int[tree1nodeCount + tree2NodeCount];
 
-        MASTPair[][] subtreeMASTs = new MASTPair[tree1.getNodeCount()][tree2.getNodeCount()];
+        MASTPair[][] subtreeMASTs = new MASTPair[tree1nodeCount][tree2NodeCount];
 
         PhylogenyNodeIterator tree1Iterator = tree1.iteratorPostorder();
 
         for (int i = 0 ; tree1Iterator.hasNext() ; i++){
             PhylogenyNode currentTree1Node = tree1Iterator.next();
-            currentTree1Node.getNodeData().getProperties();
+//            currentTree1Node.getNodeData().getProperties();
             traversalNumbers[getMASTNodeDataFromNode(currentTree1Node).getId()] = i;
 
             PhylogenyNodeIterator tree2Iterator = tree2.iteratorPostorder();
@@ -49,7 +51,7 @@ public class MAST {
             }
         }
         Phylogeny tree = new Phylogeny();
-        tree.setRoot(subtreeMASTs[tree1.getNodeCount()-1][tree2.getNodeCount()-1].getMast());
+        tree.setRoot(subtreeMASTs[tree1nodeCount -1][tree2NodeCount -1].getMast());
 
         updateParentReferences(tree);
         return tree;
