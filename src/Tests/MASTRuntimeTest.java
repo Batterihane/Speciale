@@ -36,7 +36,9 @@ public class MASTRuntimeTest {
 //        testNLogN(80000, false, "testTrees\\bestCaseTrees\\"); // identical
 //        testNLogNIdenticalTrees(80000, false, "testTrees\\completeTrees\\");
 
-        testNaive(10000, "testTrees\\completeTrees2\\");
+//        testNaive(10000, "testTrees\\completeTrees2\\");
+        testNSquaredVsNlogn();
+//        runRandomTrees();
 
 
 //        testNSquaredSingleRuns(10000, "testTrees\\completeTrees2\\");
@@ -282,7 +284,32 @@ public class MASTRuntimeTest {
     }
 
 
+    private static void testNSquaredVsNlogn(){
+        initialRuns();
+        initialRunsNSquared();
 
+        long[] nlognRuntime = new long[5];
+        long[] nsquaredRuntime = new long[5];
+        GCMonitor gcMonitor = new GCMonitor();
+
+        for (int i = 1; i <= 200; i++) {
+            Phylogeny tree1 = PhylogenyGenerator.generatePerfectTree(i, false);
+            Phylogeny tree2 = PhylogenyGenerator.generatePerfectTree(i, false);
+
+            nlognRuntime[0] = timeGetMAST(tree1, tree2, false) - gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement();
+            nlognRuntime[1] = timeGetMAST(tree1, tree2, false) - gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement();
+            nlognRuntime[2] = timeGetMAST(tree1, tree2, false) - gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement();
+            nlognRuntime[3] = timeGetMAST(tree1, tree2, false) - gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement();
+            nlognRuntime[4] = timeGetMAST(tree1, tree2, false) - gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement();
+            nsquaredRuntime[0] = timeGetMASTNSquared(tree1, tree2) - gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement();
+            nsquaredRuntime[1] = timeGetMASTNSquared(tree1, tree2) - gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement();
+            nsquaredRuntime[2] = timeGetMASTNSquared(tree1, tree2) - gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement();
+            nsquaredRuntime[3] = timeGetMASTNSquared(tree1, tree2) - gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement();
+            nsquaredRuntime[4] = timeGetMASTNSquared(tree1, tree2) - gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement();
+
+            System.out.println(i + "\t" + median(nsquaredRuntime) + "\t" + median(nlognRuntime));
+        }
+    }
 
 
     private static void testNSquaredRandomTreesOld(int maxSize) {
@@ -320,8 +347,8 @@ public class MASTRuntimeTest {
     private static void initialRunsNSquared() {
         System.out.println("Initial:");
         for (int i = 100; i >= 0; i--) {
-            Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(1000, true);
-            Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(1000, false);
+            Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(100, true);
+            Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(100, false);
             n_squared.MAST mast = new n_squared.MAST();
             mast.getMAST(tree1, tree2);
             System.out.println(i);
@@ -340,7 +367,7 @@ public class MASTRuntimeTest {
     }
 
     private static void runRandomTrees() {
-        initialRuns();
+//        initialRuns();
 
         System.out.println("Test:");
         for (int i = 100 ; i < 50000 ; i+= 100) { // GC overhead limit at size 42300

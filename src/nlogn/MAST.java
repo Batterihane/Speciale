@@ -106,6 +106,7 @@ public class MAST {
         Stack<Pair<Phylogeny, Phylogeny>> treePairsForInit = new Stack<>();
         Stack<DataForCalculatingLWAM> dataForCalculatingLWAMStack = new Stack<>();
         treePairsForInit.push(new Pair<>(tree1, tree2));
+        AgreementMatching baseCaseLwam = null;
         while (!treePairsForInit.empty()) {
             Pair<Phylogeny, Phylogeny> treePair = treePairsForInit.pop();
             Phylogeny t1 = treePair.getLeft();
@@ -121,8 +122,8 @@ public class MAST {
             // simple base case
             if (numberOfLeaves == 1) {
                 MASTNodeData tree2RootData = getMASTNodeDataFromNode(t2.getRoot());
-                AgreementMatching lwam = new AgreementMatching(new ProperCrossing(new GraphEdge(t1.getRoot(), t2.getRoot()), null), null, 1);
-                tree2RootData.setSubtreeLWAM(new Pair<>(lwam, null));
+                baseCaseLwam = new AgreementMatching(new ProperCrossing(new GraphEdge(t1.getRoot(), t2.getRoot()), null), null, 1);
+                tree2RootData.setSubtreeLWAM(new Pair<>(baseCaseLwam, null));
                 tree2RootData.setSubtreeMASTSize(1);
                 continue;
             }
@@ -163,6 +164,9 @@ public class MAST {
         }
 
         AgreementMatching resultingLWAM = null;
+        if(dataForCalculatingLWAMStack.empty())
+            return baseCaseLwam;
+
         while (!dataForCalculatingLWAMStack.empty()){
             DataForCalculatingLWAM dataForCalculatingLWAM = dataForCalculatingLWAMStack.pop();
             List<PhylogenyNode> tree1Decomposition = dataForCalculatingLWAM.getTree1Decomposition();

@@ -14,7 +14,7 @@ public class LCA {
     }
 
     public PhylogenyNode getLCA(PhylogenyNode node1, PhylogenyNode node2){
-        return getLCARecursive(tree.getRoot(), node1, node2); //TODO constant time implementation.
+        return getLCARecursive(tree.getRoot(), node1, node2);
     }
 
     private PhylogenyNode getLCARecursive(PhylogenyNode root, PhylogenyNode node1, PhylogenyNode node2){
