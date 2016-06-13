@@ -484,17 +484,17 @@ public class MAST {
         updateMiNumbers(t1CentroidPath);
 
         // Set T2 leaf numbers
-        PhylogenyNodeIterator tree2Iterator = tree2.iteratorPreorder();
-        int i = 0;
-        while (tree2Iterator.hasNext()){
-            PhylogenyNode currentNode = tree2Iterator.next();
-            if(currentNode.isExternal()){
-                getMASTNodeDataFromNode(currentNode).setLeafNumber(i);
-                i++;
-            }
-        }
+//        PhylogenyNodeIterator tree2Iterator = tree2.iteratorPreorder();
+//        int i = 0;
+//        while (tree2Iterator.hasNext()){
+//            PhylogenyNode currentNode = tree2Iterator.next();
+//            if(currentNode.isExternal()){
+//                getMASTNodeDataFromNode(currentNode).setLeafNumber(i);
+//                i++;
+//            }
+//        }
 
-        PhylogenyNode[] sortedTree1Leaves = sortTree1Leaves(tree1);
+        PhylogenyNode[] sortedTree1Leaves = sortTree1LeavesNew(tree2);
 
         List<PhylogenyNode>[] sortedSiLeaves = new List[t1CentroidPath.size()];
         for (PhylogenyNode leaf : sortedTree1Leaves){
@@ -544,6 +544,19 @@ public class MAST {
             if(currentNode.isExternal()){
                 int leafNumber = getMASTNodeDataFromNode(getMASTNodeDataFromNode(currentNode).getTwin()).getLeafNumber();
                 sortedTree1Leaves[leafNumber] = currentNode;
+            }
+        }
+        return sortedTree1Leaves;
+    }
+    public PhylogenyNode[] sortTree1LeavesNew(Phylogeny tree2){
+        PhylogenyNode[] sortedTree1Leaves = new PhylogenyNode[tree2.getRoot().getNumberOfExternalNodes()];
+        PhylogenyNodeIterator iterator = tree2.iteratorPreorder();
+        int i = 0;
+        while (iterator.hasNext()){
+            PhylogenyNode currentNode = iterator.next();
+            if(currentNode.isExternal()){
+                sortedTree1Leaves[i] = getMASTNodeDataFromNode(currentNode).getTwin();
+                i++;
             }
         }
         return sortedTree1Leaves;

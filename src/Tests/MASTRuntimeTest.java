@@ -14,6 +14,7 @@ import org.forester.phylogeny.iterators.PhylogenyNodeIterator;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Stack;
 
 /**
  * Created by Thomas on 11-03-2016.
@@ -27,19 +28,20 @@ public class MASTRuntimeTest {
 //        writeCompleteTreesToNewick();
 //        writeIdenticalCompleteTreesToNewick();
 
-//        testNSquared(80000, "testTrees\\randomTrees\\");
-//        testNSquared(80000, "testTrees\\bestCaseTrees\\");
-//        testNSquared(80000, "testTrees\\completeTrees\\");
-        testNSquared(10000, "testTrees\\completeTrees2\\");
+//        testNSquared(10000, "testTrees\\randomTrees\\");
+//        testNSquared(10000, "testTrees\\bestCaseTrees2\\");
+//        testNSquared(10000, "testTrees\\completeTrees\\");
+//        testNSquared(10000, "testTrees\\completeTrees2\\"); // with backtrack
 
-//        testNLogN(80000, false, "testTrees\\randomTrees\\"); // with 1000GB and 2000GB allocated memory
-//        testNLogN(80000, false, "testTrees\\bestCaseTrees\\");
-//        testNLogN(80000, false, "testTrees\\completeTrees\\");
+//        testNLogN(80000, false, "testTrees\\bestCaseTrees\\"); // identical
+//        testNLogNIdenticalTrees(80000, false, "testTrees\\completeTrees\\");
 
+        testNaive(10000, "testTrees\\completeTrees2\\");
 
 
 //        testNSquaredSingleRuns(10000, "testTrees\\completeTrees2\\");
 //        testNLogN(10000, false, "testTrees\\completeTrees2\\");
+//        testNLogN(80000, false, "testTrees\\randomTrees\\"); // with 1000GB and 2000GB allocated memory
 
 //        testRandomTreesGCSubtracted(80000, false);
 //        testPerfectTrees(80000, false);
@@ -65,6 +67,58 @@ public class MASTRuntimeTest {
             Pair<Phylogeny, Phylogeny> trees = getTreesFromNewick(path, i);
             Phylogeny tree1 = trees.getLeft();
             Phylogeny tree2 = trees.getRight();
+
+            currentRuntime = timeGetMAST(tree1, tree2, recursive);
+            currentGcTime = gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement() * 1000000;
+            runtime[0] = currentRuntime;
+            gctime[0] = currentGcTime;
+            gcSubtractedTime[0] = currentRuntime - currentGcTime;
+
+            currentRuntime = timeGetMAST(tree1, tree2, recursive);
+            currentGcTime = gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement() * 1000000;
+            runtime[1] = currentRuntime;
+            gctime[1] = currentGcTime;
+            gcSubtractedTime[1] = currentRuntime - currentGcTime;
+
+            currentRuntime = timeGetMAST(tree1, tree2, recursive);
+            currentGcTime = gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement() * 1000000;
+            runtime[2] = currentRuntime;
+            gctime[2] = currentGcTime;
+            gcSubtractedTime[2] = currentRuntime - currentGcTime;
+
+            currentRuntime = timeGetMAST(tree1, tree2, recursive);
+            currentGcTime = gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement() * 1000000;
+            runtime[3] = currentRuntime;
+            gctime[3] = currentGcTime;
+            gcSubtractedTime[3] = currentRuntime - currentGcTime;
+
+            currentRuntime = timeGetMAST(tree1, tree2, recursive);
+            currentGcTime = gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement() * 1000000;
+            runtime[4] = currentRuntime;
+            gctime[4] = currentGcTime;
+            gcSubtractedTime[4] = currentRuntime - currentGcTime;
+
+            long medianRuntime = median(runtime);
+            long medianGctime = median(gctime);
+            long medianGcSubtractedTime = median(gcSubtractedTime);
+            System.out.println(i + "\t" + medianRuntime + "\t" + medianGctime + "\t" + medianGcSubtractedTime);
+        }
+    }
+
+    private static void testNLogNIdenticalTrees(int maxSize, boolean recursive, String path) {
+        initialRuns();
+
+        System.out.println("Test:");
+        GCMonitor gcMonitor = new GCMonitor();
+        long currentRuntime;
+        long currentGcTime;
+        for (int i = 200; i <= maxSize; i+= 200) {
+            long[] runtime = new long[5];
+            long[] gctime = new long[5];
+            long[] gcSubtractedTime = new long[5];
+            Pair<Phylogeny, Phylogeny> trees = getTreesFromNewick(path, i);
+            Phylogeny tree1 = trees.getRight();
+            Phylogeny tree2 = copyTree(tree1);
 
             currentRuntime = timeGetMAST(tree1, tree2, recursive);
             currentGcTime = gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement() * 1000000;
@@ -155,6 +209,58 @@ public class MASTRuntimeTest {
         }
     }
 
+    private static void testNaive(int maxSize, String path) {
+        initialRunsNaive();
+
+        System.out.println("Test:");
+        GCMonitor gcMonitor = new GCMonitor();
+        long currentRuntime;
+        long currentGcTime;
+        for (int i = 50; i <= maxSize; i+= 50) {
+            long[] runtime = new long[5];
+            long[] gctime = new long[5];
+            long[] gcSubtractedTime = new long[5];
+            Pair<Phylogeny, Phylogeny> trees = getTreesFromNewick(path, i);
+            Phylogeny tree1 = trees.getLeft();
+            Phylogeny tree2 = trees.getRight();
+
+            currentRuntime = timeGetMASTNaive(tree1, tree2);
+            currentGcTime = gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement() * 1000000;
+            runtime[0] = currentRuntime;
+            gctime[0] = currentGcTime;
+            gcSubtractedTime[0] = currentRuntime - currentGcTime;
+
+            currentRuntime = timeGetMASTNaive(tree1, tree2);
+            currentGcTime = gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement() * 1000000;
+            runtime[1] = currentRuntime;
+            gctime[1] = currentGcTime;
+            gcSubtractedTime[1] = currentRuntime - currentGcTime;
+
+            currentRuntime = timeGetMASTNaive(tree1, tree2);
+            currentGcTime = gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement() * 1000000;
+            runtime[2] = currentRuntime;
+            gctime[2] = currentGcTime;
+            gcSubtractedTime[2] = currentRuntime - currentGcTime;
+
+            currentRuntime = timeGetMASTNaive(tree1, tree2);
+            currentGcTime = gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement() * 1000000;
+            runtime[3] = currentRuntime;
+            gctime[3] = currentGcTime;
+            gcSubtractedTime[3] = currentRuntime - currentGcTime;
+
+            currentRuntime = timeGetMASTNaive(tree1, tree2);
+            currentGcTime = gcMonitor.getTimeUsedOnGarbageCollectingSinceLastMeasurement() * 1000000;
+            runtime[4] = currentRuntime;
+            gctime[4] = currentGcTime;
+            gcSubtractedTime[4] = currentRuntime - currentGcTime;
+
+            long medianRuntime = median(runtime);
+            long medianGctime = median(gctime);
+            long medianGcSubtractedTime = median(gcSubtractedTime);
+            System.out.println(i + "\t" + medianRuntime + "\t" + medianGctime + "\t" + medianGcSubtractedTime);
+        }
+    }
+
     private static void testNSquaredSingleRuns(int maxSize, String path) {
         initialRunsNSquared();
 
@@ -204,12 +310,30 @@ public class MASTRuntimeTest {
         return System.nanoTime() - time;
     }
 
+    private static long timeGetMASTNaive(Phylogeny tree1, Phylogeny tree2) {
+        naive.MAST mast = new naive.MAST();
+        long time = System.nanoTime();
+        mast.getMAST(tree1, tree2);
+        return System.nanoTime() - time;
+    }
+
     private static void initialRunsNSquared() {
         System.out.println("Initial:");
         for (int i = 100; i >= 0; i--) {
             Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(1000, true);
             Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(1000, false);
             n_squared.MAST mast = new n_squared.MAST();
+            mast.getMAST(tree1, tree2);
+            System.out.println(i);
+        }
+    }
+
+    private static void initialRunsNaive() {
+        System.out.println("Initial:");
+        for (int i = 100; i >= 0; i--) {
+            Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(10, true);
+            Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(10, false);
+            naive.MAST mast = new naive.MAST();
             mast.getMAST(tree1, tree2);
             System.out.println(i);
         }
@@ -622,6 +746,17 @@ public class MASTRuntimeTest {
         }
     }
 
+    private static void writeRandomTreesToNewick2(){
+        String path = "testTrees\\randomTrees2\\";
+        PhylogenyParser parser = new PhylogenyParser();
+        for (int i = 50; i <= 10000; i+= 50) {
+            Phylogeny tree1 = PhylogenyGenerator.generateRandomTree(i, true);
+            Phylogeny tree2 = PhylogenyGenerator.generateRandomTree(i, false);
+            parser.toNewick(tree1, tree2, path + i, false);
+            System.out.println(i);
+        }
+    }
+
     private static void writeCompleteTreesToNewick(){
         String path = "testTrees\\completeTrees\\";
         PhylogenyParser parser = new PhylogenyParser();
@@ -668,5 +803,33 @@ public class MASTRuntimeTest {
 
     private static Pair<Phylogeny, Phylogeny> getTreesFromNewick(String path, int treeSize){
         return new ForesterNewickParser().parseNewickFileTwoTrees(path + treeSize + ".new");
+    }
+
+    private static Phylogeny copyTree(Phylogeny tree){
+        Phylogeny result = new Phylogeny();
+
+        Stack<Pair> remainingNodes = new Stack<>();
+        PhylogenyNode root = tree.getRoot();
+        PhylogenyNode newRoot = new PhylogenyNode();
+        Pair<PhylogenyNode, PhylogenyNode> rootPair = new Pair<>(root, newRoot);
+        remainingNodes.push(rootPair);
+
+        while(!remainingNodes.isEmpty()){
+            Pair<PhylogenyNode, PhylogenyNode> nodePair = remainingNodes.pop();
+            PhylogenyNode oldNode = nodePair.getLeft();
+            PhylogenyNode newNode = nodePair.getRight();
+            if(oldNode.isExternal()){
+                newNode.setName(oldNode.getName());
+                continue;
+            }
+            PhylogenyNode newChild1 = new PhylogenyNode();
+            PhylogenyNode newChild2 = new PhylogenyNode();
+            newNode.setChild1(newChild1);
+            newNode.setChild2(newChild2);
+            remainingNodes.push(new Pair<>(oldNode.getChildNode1(), newChild1));
+            remainingNodes.push(new Pair<>(oldNode.getChildNode2(), newChild2));
+        }
+        result.setRoot(newRoot);
+        return result;
     }
 }

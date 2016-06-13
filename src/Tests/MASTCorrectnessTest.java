@@ -14,8 +14,8 @@ import org.forester.phylogeny.Phylogeny;
  */
 public class MASTCorrectnessTest {
     public static void main(String[] args) {
-//        nLognVsNSquared();
-        nLognVsNSquaredTestTrees();
+        nLognVsNSquared();
+//        nLognVsNSquaredTestTrees();
 //        lisVsNSquared();
 //        nSquaredVsNaive();
     }
